@@ -167,8 +167,8 @@
                     <div id="p1-indicator-Sakura" class="p1-indicator absolute top-0 left-0 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-br shadow-md hidden">P1</div>
                     <div id="p2-indicator-Sakura" class="p2-indicator absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-bl shadow-md hidden">P2</div>
                 </div>
-                <!-- Random/Empty -->
-                <div class="relative cursor-not-allowed w-24 h-24 bg-gray-800 border-2 border-gray-700 rounded-lg flex flex-col items-center justify-center opacity-50">
+                <!-- Random -->
+                <div onclick="selectRandomChar()" class="relative cursor-pointer w-24 h-24 bg-purple-900 hover:bg-purple-800 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
                     <span class="text-4xl mb-1">?</span>
                     <span class="text-xs font-bold uppercase">Random</span>
                 </div>
@@ -300,6 +300,12 @@
         window.setSelectionMode = function(mode) {
             selectionMode = mode;
             updateSelectionUI();
+        };
+
+        window.selectRandomChar = function() {
+            const chars = ['Naruto', 'Sasuke', 'Rock Lee', 'Gaara', 'Sakura'];
+            const randomChar = chars[Math.floor(Math.random() * chars.length)];
+            selectChar(randomChar);
         };
 
         window.selectChar = function(charName) {
