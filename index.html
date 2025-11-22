@@ -67,6 +67,7 @@
         .btn-ninjutsu { background-color: #3b82f6; color: white; }
         .btn-chakra { background-color: #10b981; color: white; }
         .btn-rocklee { background-color: #15803d; color: white; }
+        .btn-gaara { background-color: #7c2d12; color: white; }
         .message-box {
             min-height: 60px;
             background-color: #1f2937;
@@ -118,6 +119,7 @@
                     <button onclick="selectChar(1, 'Naruto')" id="p1-Naruto" class="char-btn selected btn-action bg-orange-500 text-white">Naruto</button>
                     <button onclick="selectChar(1, 'Sasuke')" id="p1-Sasuke" class="char-btn btn-action bg-blue-600 text-white">Sasuke</button>
                     <button onclick="selectChar(1, 'Rock Lee')" id="p1-RockLee" class="char-btn btn-action bg-green-600 text-white">Rock Lee</button>
+                    <button onclick="selectChar(1, 'Gaara')" id="p1-Gaara" class="char-btn btn-action bg-red-900 text-white">Gaara</button>
                 </div>
             </div>
 
@@ -128,6 +130,7 @@
                     <button onclick="selectChar(2, 'Naruto')" id="p2-Naruto" class="char-btn btn-action bg-orange-500 text-white">Naruto</button>
                     <button onclick="selectChar(2, 'Sasuke')" id="p2-Sasuke" class="char-btn selected btn-action bg-blue-600 text-white">Sasuke</button>
                     <button onclick="selectChar(2, 'Rock Lee')" id="p2-RockLee" class="char-btn btn-action bg-green-600 text-white">Rock Lee</button>
+                    <button onclick="selectChar(2, 'Gaara')" id="p2-Gaara" class="char-btn btn-action bg-red-900 text-white">Gaara</button>
                 </div>
             </div>
         </div>
@@ -235,6 +238,8 @@
             'Rasengan': { cost: 40, damage: 50, ninjutsuMsg: "shoots a massive RASENGAN!" }, 
             'Chidori': { cost: 40, damage: 50, ninjutsuMsg: "pierces with CHIDORI!" },
             'Primary Lotus': { cost: 40, damage: 55, ninjutsuMsg: "opens the Gates! PRIMARY LOTUS!" },
+            'Sand Coffin': { cost: 40, damage: 50, ninjutsuMsg: "crushes with SAND COFFIN!" },
+            'Sand Burial': { cost: 100, damage: 100, ninjutsuMsg: "buries the enemy with GIANT SAND BURIAL!" },
             'Sharingan': { cost: 100, damage: 100, selfDamage: 20, ninjutsuMsg: "unleashes the power of the SHARINGAN!" }
         };
 
@@ -408,11 +413,38 @@
             if (player.name === 'Sasuke' && player.isCurseMark) skinColor = '#71717a'; // Grey
             if (player.name === 'Naruto' && player.isThreeTails) skinColor = '#fb923c'; // Orange tint
             if (player.name === 'Rock Lee' && player.isNinthGate) skinColor = '#b91c1c'; // Deep Red
+            if (player.name === 'Gaara') skinColor = '#fef3c7'; // Pale
 
             // --- Wings (Background) ---
             if (player.name === 'Sasuke' && player.isCurseMark) {
                 // Draw wings behind body
                 drawWings(0, -45, direction); 
+            }
+
+            // --- Gaara Gourd (Background) ---
+            if (player.name === 'Gaara') {
+                ctx.save();
+                ctx.fillStyle = '#d6d3d1'; // Sand color
+                ctx.strokeStyle = '#78350f'; // Brown lines
+                ctx.lineWidth = 2;
+                
+                // Gourd Shape
+                ctx.translate(-10 * direction, -40);
+                ctx.rotate(-0.2 * direction);
+                
+                ctx.beginPath();
+                ctx.ellipse(0, 0, 18, 25, 0, 0, Math.PI*2); // Bottom part
+                ctx.fill(); ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.ellipse(0, -25, 12, 15, 0, 0, Math.PI*2); // Top part
+                ctx.fill(); ctx.stroke();
+                
+                // Rope
+                ctx.fillStyle = '#b91c1c';
+                ctx.fillRect(-5, -15, 10, 4);
+                
+                ctx.restore();
             }
             
             // --- Three Tails (Background) ---
@@ -439,6 +471,7 @@
             if (player.name === 'Naruto') legColor = '#f97316'; // Orange pants
             else if (player.name === 'Sasuke') legColor = '#e5e7eb'; // White shorts
             else if (player.name === 'Rock Lee') legColor = '#16a34a'; // Green jumpsuit
+            else if (player.name === 'Gaara') legColor = '#7f1d1d'; // Dark Red pants
 
             ctx.fillStyle = legColor;
             ctx.strokeStyle = '#1f2937';
@@ -496,6 +529,7 @@
             let bodyColor = '#f97316';
             if (player.name === 'Sasuke') bodyColor = '#1e3a8a'; // Blue
             if (player.name === 'Rock Lee') bodyColor = '#16a34a'; // Green
+            if (player.name === 'Gaara') bodyColor = '#7f1d1d'; // Dark Red
 
             ctx.fillStyle = bodyColor;
             // Torso Rect
@@ -514,6 +548,16 @@
                  // Red Belt
                  ctx.fillStyle = '#ef4444';
                  ctx.fillRect(-bodyW/2, -limbL - 4, bodyW, 4);
+            }
+            else if (player.name === 'Gaara') {
+                // Sash
+                ctx.fillStyle = '#d1d5db'; // Grey sash
+                ctx.beginPath();
+                ctx.moveTo(-bodyW/2, -bodyH - limbL);
+                ctx.lineTo(bodyW/2, -limbL);
+                ctx.lineTo(bodyW/2, -limbL - 5);
+                ctx.lineTo(-bodyW/2, -bodyH - limbL - 5);
+                ctx.fill();
             }
 
 
@@ -545,7 +589,7 @@
             }
 
             // Headband
-            if (player.name !== 'Rock Lee') { // Lee wears it on waist
+            if (player.name !== 'Rock Lee' && player.name !== 'Gaara') { // Lee wears it on waist, Gaara doesn't wear one usually or on gourd
                 ctx.fillStyle = '#1f2937'; // Navy band
                 ctx.fillRect(-headSize - 2, -headSize - 10, headSize*2 + 4, 6);
                 ctx.fillStyle = '#d1d5db'; // Metal plate
@@ -601,6 +645,24 @@
                 ctx.fillStyle = 'rgba(255,255,255,0.3)';
                 ctx.fillRect(-8, -headSize - 10, 4, 4);
             }
+            else if (player.name === 'Gaara') {
+                ctx.fillStyle = '#991b1b'; // Red hair
+                ctx.beginPath();
+                // Spiky short hair
+                ctx.moveTo(-headSize, -headSize);
+                for(let i=0; i<6; i++) {
+                    ctx.lineTo(-headSize + (i*5), -headSize - 10);
+                    ctx.lineTo(-headSize + (i*5) + 2, -headSize);
+                }
+                ctx.fill();
+                
+                // Eye rings
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(4 * direction, -headSize - 1, 3, 0, Math.PI*2);
+                ctx.stroke();
+            }
 
 
             // --- Arms ---
@@ -615,6 +677,7 @@
                 ctx.fillStyle = '#e5e7eb'; 
             }
             else if (player.name === 'Rock Lee') ctx.fillStyle = '#16a34a';
+            else if (player.name === 'Gaara') ctx.fillStyle = '#7f1d1d';
 
             ctx.save();
             ctx.translate(0, 0); // Shoulder
@@ -623,7 +686,14 @@
             
             // Hand
             ctx.fillStyle = skinColor;
-            ctx.beginPath(); ctx.arc(0, 18, 3, 0, Math.PI*2); ctx.fill();
+            
+            // Shukaku Arm (Transformation)
+            if (player.name === 'Gaara' && player.isShukaku) {
+                ctx.fillStyle = '#d6d3d1'; // Sand
+                ctx.beginPath(); ctx.arc(0, 18, 8, 0, Math.PI*2); ctx.fill(); // Big hand
+            } else {
+                ctx.beginPath(); ctx.arc(0, 18, 3, 0, Math.PI*2); ctx.fill();
+            }
             
             ctx.restore();
 
@@ -744,6 +814,53 @@
 
             drawEye(x - eyeSpacing/2, eyeY);
             drawEye(x + eyeSpacing/2, eyeY);
+            
+            ctx.restore();
+        }
+
+        function drawSandEffect(x, y, frame, targetX) {
+            ctx.save();
+            const dir = targetX > x ? 1 : -1;
+            
+            // Sand Cloud
+            ctx.fillStyle = '#d6d3d1'; // Stone 300
+            ctx.strokeStyle = '#a8a29e'; // Stone 400
+            
+            const numParticles = 20;
+            for(let i=0; i<numParticles; i++) {
+                const px = x + (targetX - x) * (frame/30) + Math.sin(frame * 0.5 + i) * 20;
+                const py = y + Math.cos(frame * 0.5 + i) * 20;
+                const size = 5 + Math.random() * 5;
+                
+                ctx.beginPath();
+                ctx.arc(px, py, size, 0, Math.PI*2);
+                ctx.fill();
+            }
+            
+            // Giant Hand at end
+            if (frame > 20) {
+                const progress = (frame - 20) / 10;
+                const handX = targetX;
+                const handY = y;
+                
+                ctx.globalAlpha = progress;
+                ctx.fillStyle = '#a8a29e';
+                ctx.beginPath();
+                ctx.arc(handX, handY, 40 * progress, 0, Math.PI*2);
+                ctx.fill();
+                
+                // Fingers
+                for(let i=0; i<5; i++) {
+                    const angle = (i * Math.PI / 4) - Math.PI/2;
+                    const fx = handX + Math.cos(angle) * 50 * progress;
+                    const fy = handY + Math.sin(angle) * 50 * progress;
+                    ctx.beginPath();
+                    ctx.moveTo(handX, handY);
+                    ctx.lineTo(fx, fy);
+                    ctx.lineWidth = 10 * progress;
+                    ctx.stroke();
+                }
+            }
             
             ctx.restore();
         }
@@ -1016,6 +1133,8 @@
                             drawRasenganProjectile(currentX, currentY, frame, startX, targetX);
                         } else if (jutsuType === 'Sharingan') {
                             drawSharinganEffect(ctx, W/2, H/2, frame);
+                        } else if (jutsuType === 'Sand') {
+                            drawSandEffect(startX, startY, frame, targetX);
                         } else {
                             drawChidori(currentX, currentY, frame);
                         }
@@ -1065,6 +1184,10 @@
 
         function getUltimateMove(player) {
             if (player.name === 'Rock Lee') return { name: 'Primary Lotus', ...MOVES['Primary Lotus'] };
+            if (player.name === 'Gaara') {
+                if (player.isShukaku) return { name: 'Sand Burial', ...MOVES['Sand Burial'] };
+                return { name: 'Sand Coffin', ...MOVES['Sand Coffin'] };
+            }
             if (player.name === 'Naruto') return { name: 'Rasengan', ...MOVES.Rasengan };
             if (player.name === 'Sasuke') {
                 if (player.isCurseMark) return { name: 'Sharingan', ...MOVES.Sharingan };
@@ -1106,7 +1229,7 @@
             const isAReady = p1.chakra >= p1Ult.cost;
             btnNinjutsuA.textContent = isAReady ? p1Ult.name : `${p1Ult.name} (${p1Ult.cost})`;
             btnNinjutsuA.disabled = !isAReady || gameOver;
-            btnNinjutsuA.className = `btn-action w-1/3 ${!isAReady ? 'opacity-50' : ''} ${p1.name === 'Rock Lee' ? 'btn-rocklee' : p1.name === 'Sasuke' ? 'bg-blue-600 text-white' : 'btn-ninjutsu'}`;
+            btnNinjutsuA.className = `btn-action w-1/3 ${!isAReady ? 'opacity-50' : ''} ${p1.name === 'Rock Lee' ? 'btn-rocklee' : p1.name === 'Gaara' ? 'btn-gaara' : p1.name === 'Sasuke' ? 'bg-blue-600 text-white' : 'btn-ninjutsu'}`;
 
             const controlsB = document.getElementById('controlsB');
             if (gameState.mode === 'CPU') {
@@ -1122,7 +1245,7 @@
             const isBReady = p2.chakra >= p2Ult.cost;
             btnNinjutsuB.textContent = isBReady ? p2Ult.name : `${p2Ult.name} (${p2Ult.cost})`;
             btnNinjutsuB.disabled = !isBReady || gameOver;
-            btnNinjutsuB.className = `btn-action w-1/3 ${!isBReady ? 'opacity-50' : ''} ${p2.name === 'Rock Lee' ? 'btn-rocklee' : p2.name === 'Sasuke' ? 'bg-blue-600 text-white' : 'btn-ninjutsu'}`;
+            btnNinjutsuB.className = `btn-action w-1/3 ${!isBReady ? 'opacity-50' : ''} ${p2.name === 'Rock Lee' ? 'btn-rocklee' : p2.name === 'Gaara' ? 'btn-gaara' : p2.name === 'Sasuke' ? 'bg-blue-600 text-white' : 'btn-ninjutsu'}`;
 
             document.getElementById('messageBox').textContent = gameState.message || (gameState.turn === 'A' ? `${p1.name}'s Turn.` : `${p2.name}'s Turn.`);
         }
@@ -1153,8 +1276,8 @@
         }
 
         window.resetGame = function() {
-            gameState.playerA = { hp: 100, maxHp: 100, chakra: 50, maxChakra: 50, x: W * 0.2, y: GROUND_Y, color: '#000000', name: p1Selection, pose: 'idle', isCurseMark: false, isThreeTails: false, isNinthGate: false };
-            gameState.playerB = { hp: 100, maxHp: 100, chakra: 50, maxChakra: 50, x: W * 0.8, y: GROUND_Y, color: '#000000', name: p2Selection, pose: 'idle', isCurseMark: false, isThreeTails: false, isNinthGate: false };
+            gameState.playerA = { hp: 100, maxHp: 100, chakra: 50, maxChakra: 50, x: W * 0.2, y: GROUND_Y, color: '#000000', name: p1Selection, pose: 'idle', isCurseMark: false, isThreeTails: false, isNinthGate: false, isShukaku: false };
+            gameState.playerB = { hp: 100, maxHp: 100, chakra: 50, maxChakra: 50, x: W * 0.8, y: GROUND_Y, color: '#000000', name: p2Selection, pose: 'idle', isCurseMark: false, isThreeTails: false, isNinthGate: false, isShukaku: false };
             gameState.turn = 'A';
             gameState.isAnimating = false;
             gameState.effects = [];
@@ -1264,6 +1387,7 @@
                     let jutsuType = 'Chidori';
                     if (attacker.name === 'Naruto') jutsuType = 'Rasengan';
                     else if (attacker.name === 'Sasuke' && attacker.isCurseMark) jutsuType = 'Sharingan';
+                    else if (attacker.name === 'Gaara') jutsuType = 'Sand';
                     
                     await animateNinjutsu(attacker, target, jutsuType);
                 }
@@ -1315,6 +1439,20 @@
                     target.maxChakra = 100;
                     gameState.message = "ROCK LEE OPENS THE 9TH GATE! GATE OF PAIN!";
                     spawnFloatingText(target.x, target.y - 90, "9TH GATE!", "#ef4444", true);
+                    gameState.effects.push({ type: 'ChakraFocus', x: target.x, y: (target.y - size * 2) - size, frame: 0 });
+                }
+            }
+
+            // Gaara Shukaku Transformation (50% chance)
+            if (target.name === 'Gaara' && target.hp <= 0 && !target.isShukaku) {
+                if (Math.random() < 0.5) {
+                    target.isShukaku = true;
+                    target.hp = 200;
+                    target.maxHp = 200;
+                    target.chakra = 100;
+                    target.maxChakra = 100;
+                    gameState.message = "GAARA TRANSFORMS! SHUKAKU POSSESSION!";
+                    spawnFloatingText(target.x, target.y - 90, "SHUKAKU!", "#7c2d12", true);
                     gameState.effects.push({ type: 'ChakraFocus', x: target.x, y: (target.y - size * 2) - size, frame: 0 });
                 }
             }
