@@ -109,49 +109,95 @@
 <div id="game-container" class="game-container">
     
     <!-- Start Screen Overlay -->
-    <div id="startOverlay" class="overlay">
-        <h1 class="text-5xl text-yellow-400 mb-4 text-center">STICK HOKAGE<br><span class="text-2xl text-white">Battle Arena</span></h1>
+    <div id="startOverlay" class="overlay flex flex-col items-center justify-center bg-gray-900 text-white p-4">
+        <h1 class="text-6xl font-bold text-yellow-400 mb-2 tracking-wider" style="font-family: 'Jockey One', sans-serif; text-shadow: 4px 4px 0 #000;">STICK HOKAGE</h1>
         
-        <div class="w-full max-w-2xl flex flex-col md:flex-row justify-around mb-8 space-y-6 md:space-y-0">
-            <!-- Player 1 Selection -->
-            <div class="flex flex-col items-center">
-                <h2 class="text-white text-xl mb-3">Player 1 (You)</h2>
-                <div class="flex space-x-2">
-                    <button onclick="selectChar(1, 'Naruto')" id="p1-Naruto" class="char-btn selected btn-action bg-orange-500 text-white">Naruto</button>
-                    <button onclick="selectChar(1, 'Sasuke')" id="p1-Sasuke" class="char-btn btn-action bg-blue-600 text-white">Sasuke</button>
-                    <button onclick="selectChar(1, 'Rock Lee')" id="p1-RockLee" class="char-btn btn-action bg-green-600 text-white">Rock Lee</button>
-                    <button onclick="selectChar(1, 'Gaara')" id="p1-Gaara" class="char-btn btn-action bg-red-900 text-white">Gaara</button>
-                    <button onclick="selectChar(1, 'Sakura')" id="p1-Sakura" class="char-btn btn-action bg-pink-600 text-white">Sakura</button>
+        <!-- Selection Status -->
+        <div class="mb-4 text-center">
+            <p class="text-gray-400 uppercase tracking-widest text-sm">Select Your Fighter</p>
+            <div class="text-2xl mt-1">Selecting: <span id="selecting-player" class="font-bold text-blue-400 animate-pulse">PLAYER 1</span></div>
+        </div>
+
+        <!-- Main Selection Area -->
+        <div class="flex justify-between items-center w-full max-w-5xl mb-6 px-4">
+            
+            <!-- Player 1 Preview -->
+            <div class="flex flex-col items-center w-1/4 cursor-pointer transition-transform hover:scale-105 scale-105" onclick="setSelectionMode(1)" id="p1-preview">
+                <div class="text-blue-400 font-bold text-2xl mb-2">PLAYER 1</div>
+                <div id="p1-portrait" class="w-40 h-40 bg-orange-500 border-4 border-blue-500 rounded-xl flex items-center justify-center mb-4 shadow-lg relative overflow-hidden">
+                    <span class="text-6xl">🦊</span>
+                </div>
+                <div id="p1-name" class="text-4xl font-bold text-white tracking-tighter">NARUTO</div>
+            </div>
+
+            <!-- Character Grid -->
+            <div class="grid grid-cols-3 gap-3 mx-4">
+                <!-- Naruto -->
+                <div onclick="selectChar('Naruto')" class="relative cursor-pointer w-24 h-24 bg-orange-600 hover:bg-orange-500 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
+                    <span class="text-4xl mb-1">🦊</span>
+                    <span class="text-xs font-bold uppercase">Naruto</span>
+                    <div id="p1-indicator-Naruto" class="p1-indicator absolute top-0 left-0 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-br shadow-md">P1</div>
+                    <div id="p2-indicator-Naruto" class="p2-indicator absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-bl shadow-md hidden">P2</div>
+                </div>
+                <!-- Sasuke -->
+                <div onclick="selectChar('Sasuke')" class="relative cursor-pointer w-24 h-24 bg-blue-700 hover:bg-blue-600 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
+                    <span class="text-4xl mb-1">⚡</span>
+                    <span class="text-xs font-bold uppercase">Sasuke</span>
+                    <div id="p1-indicator-Sasuke" class="p1-indicator absolute top-0 left-0 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-br shadow-md hidden">P1</div>
+                    <div id="p2-indicator-Sasuke" class="p2-indicator absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-bl shadow-md">P2</div>
+                </div>
+                <!-- Rock Lee -->
+                <div onclick="selectChar('Rock Lee')" class="relative cursor-pointer w-24 h-24 bg-green-700 hover:bg-green-600 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
+                    <span class="text-4xl mb-1">👊</span>
+                    <span class="text-xs font-bold uppercase">Rock Lee</span>
+                    <div id="p1-indicator-Rock Lee" class="p1-indicator absolute top-0 left-0 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-br shadow-md hidden">P1</div>
+                    <div id="p2-indicator-Rock Lee" class="p2-indicator absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-bl shadow-md hidden">P2</div>
+                </div>
+                <!-- Gaara -->
+                <div onclick="selectChar('Gaara')" class="relative cursor-pointer w-24 h-24 bg-red-900 hover:bg-red-800 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
+                    <span class="text-4xl mb-1">🏺</span>
+                    <span class="text-xs font-bold uppercase">Gaara</span>
+                    <div id="p1-indicator-Gaara" class="p1-indicator absolute top-0 left-0 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-br shadow-md hidden">P1</div>
+                    <div id="p2-indicator-Gaara" class="p2-indicator absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-bl shadow-md hidden">P2</div>
+                </div>
+                <!-- Sakura -->
+                <div onclick="selectChar('Sakura')" class="relative cursor-pointer w-24 h-24 bg-pink-600 hover:bg-pink-500 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
+                    <span class="text-4xl mb-1">🌸</span>
+                    <span class="text-xs font-bold uppercase">Sakura</span>
+                    <div id="p1-indicator-Sakura" class="p1-indicator absolute top-0 left-0 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-br shadow-md hidden">P1</div>
+                    <div id="p2-indicator-Sakura" class="p2-indicator absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-bl shadow-md hidden">P2</div>
+                </div>
+                <!-- Random/Empty -->
+                <div class="relative cursor-not-allowed w-24 h-24 bg-gray-800 border-2 border-gray-700 rounded-lg flex flex-col items-center justify-center opacity-50">
+                    <span class="text-4xl mb-1">?</span>
+                    <span class="text-xs font-bold uppercase">Random</span>
                 </div>
             </div>
 
-            <!-- Player 2 Selection -->
-            <div class="flex flex-col items-center">
-                <h2 class="text-white text-xl mb-3">Player 2 / CPU</h2>
-                <div class="flex space-x-2">
-                    <button onclick="selectChar(2, 'Naruto')" id="p2-Naruto" class="char-btn btn-action bg-orange-500 text-white">Naruto</button>
-                    <button onclick="selectChar(2, 'Sasuke')" id="p2-Sasuke" class="char-btn selected btn-action bg-blue-600 text-white">Sasuke</button>
-                    <button onclick="selectChar(2, 'Rock Lee')" id="p2-RockLee" class="char-btn btn-action bg-green-600 text-white">Rock Lee</button>
-                    <button onclick="selectChar(2, 'Gaara')" id="p2-Gaara" class="char-btn btn-action bg-red-900 text-white">Gaara</button>
-                    <button onclick="selectChar(2, 'Sakura')" id="p2-Sakura" class="char-btn btn-action bg-pink-600 text-white">Sakura</button>
+            <!-- Player 2 Preview -->
+            <div class="flex flex-col items-center w-1/4 cursor-pointer transition-transform hover:scale-105" onclick="setSelectionMode(2)" id="p2-preview">
+                <div class="text-red-400 font-bold text-2xl mb-2">PLAYER 2</div>
+                <div id="p2-portrait" class="w-40 h-40 bg-blue-600 border-4 border-red-500 rounded-xl flex items-center justify-center mb-4 shadow-lg relative overflow-hidden">
+                    <span class="text-6xl">⚡</span>
                 </div>
+                <div id="p2-name" class="text-4xl font-bold text-white tracking-tighter">SASUKE</div>
             </div>
         </div>
 
         <!-- Arena Selection -->
-        <div class="flex flex-col items-center mb-8">
-            <h2 class="text-white text-xl mb-3">Select Arena</h2>
+        <div class="flex flex-col items-center mb-8 w-full">
+            <h2 class="text-gray-400 text-sm uppercase tracking-widest mb-3">Select Arena</h2>
             <div class="flex space-x-4">
-                <button onclick="selectArena('Valley')" id="arena-Valley" class="char-btn selected btn-action bg-blue-500 text-white">Valley of the End</button>
-                <button onclick="selectArena('Forest')" id="arena-Forest" class="char-btn btn-action bg-green-800 text-white">Forest of Death</button>
+                <button onclick="selectArena('Valley')" id="arena-Valley" class="px-6 py-2 rounded bg-blue-900 border-2 border-blue-500 text-white hover:bg-blue-800 transition-colors selected ring-2 ring-yellow-400">Valley of the End</button>
+                <button onclick="selectArena('Forest')" id="arena-Forest" class="px-6 py-2 rounded bg-green-900 border-2 border-green-500 text-white hover:bg-green-800 transition-colors">Forest of Death</button>
             </div>
         </div>
 
         <div class="flex space-x-6">
-            <button onclick="startGame('CPU')" class="btn-action bg-yellow-500 text-gray-900 text-2xl hover:bg-yellow-600 min-w-[200px] font-bold">
+            <button onclick="startGame('CPU')" class="btn-action bg-yellow-500 text-gray-900 text-2xl hover:bg-yellow-600 min-w-[200px] font-bold shadow-lg transform hover:-translate-y-1 transition-transform">
                 START vs CPU
             </button>
-            <button onclick="startGame('PVP')" class="btn-action bg-red-500 text-white text-2xl hover:bg-red-600 min-w-[200px] font-bold">
+            <button onclick="startGame('PVP')" class="btn-action bg-red-600 text-white text-2xl hover:bg-red-700 min-w-[200px] font-bold shadow-lg transform hover:-translate-y-1 transition-transform">
                 START PvP
             </button>
         </div>
@@ -249,22 +295,88 @@
         };
 
         // --- Menu Logic ---
-        window.selectChar = function(player, charName) {
-            if (player === 1) {
+        let selectionMode = 1;
+
+        window.setSelectionMode = function(mode) {
+            selectionMode = mode;
+            updateSelectionUI();
+        };
+
+        window.selectChar = function(charName) {
+            if (selectionMode === 1) {
                 p1Selection = charName;
-                document.querySelectorAll('[id^="p1-"]').forEach(el => el.classList.remove('selected'));
-                document.getElementById(`p1-${charName.replace(' ','')}`).classList.add('selected');
+                selectionMode = 2; // Auto advance
             } else {
                 p2Selection = charName;
-                document.querySelectorAll('[id^="p2-"]').forEach(el => el.classList.remove('selected'));
-                document.getElementById(`p2-${charName.replace(' ','')}`).classList.add('selected');
             }
+            updateSelectionUI();
         };
+
+        function updateSelectionUI() {
+            // Update Names
+            document.getElementById('p1-name').textContent = p1Selection.toUpperCase();
+            document.getElementById('p2-name').textContent = p2Selection.toUpperCase();
+            
+            // Char Data for Portraits
+            const charData = {
+                'Naruto': { color: 'bg-orange-500', icon: '🦊' },
+                'Sasuke': { color: 'bg-blue-700', icon: '⚡' },
+                'Rock Lee': { color: 'bg-green-700', icon: '👊' },
+                'Gaara': { color: 'bg-red-900', icon: '🏺' },
+                'Sakura': { color: 'bg-pink-600', icon: '🌸' }
+            };
+            
+            // Update P1 Portrait
+            const p1Data = charData[p1Selection];
+            const p1El = document.getElementById('p1-portrait');
+            p1El.className = `w-40 h-40 border-4 border-blue-500 rounded-xl flex items-center justify-center mb-4 shadow-lg relative overflow-hidden ${p1Data.color}`;
+            p1El.innerHTML = `<span class="text-6xl">${p1Data.icon}</span>`;
+
+            // Update P2 Portrait
+            const p2Data = charData[p2Selection];
+            const p2El = document.getElementById('p2-portrait');
+            p2El.className = `w-40 h-40 border-4 border-red-500 rounded-xl flex items-center justify-center mb-4 shadow-lg relative overflow-hidden ${p2Data.color}`;
+            p2El.innerHTML = `<span class="text-6xl">${p2Data.icon}</span>`;
+
+            // Update Grid Indicators
+            document.querySelectorAll('.p1-indicator').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.p2-indicator').forEach(el => el.classList.add('hidden'));
+            
+            const p1Id = p1Selection; 
+            const p2Id = p2Selection;
+            
+            const p1Ind = document.getElementById(`p1-indicator-${p1Id}`);
+            if(p1Ind) p1Ind.classList.remove('hidden');
+            
+            const p2Ind = document.getElementById(`p2-indicator-${p2Id}`);
+            if(p2Ind) p2Ind.classList.remove('hidden');
+
+            // Update Status Text
+            const selText = document.getElementById('selecting-player');
+            const p1Prev = document.getElementById('p1-preview');
+            const p2Prev = document.getElementById('p2-preview');
+
+            if(selectionMode === 1) {
+                selText.textContent = "PLAYER 1";
+                selText.className = "font-bold text-blue-400 animate-pulse";
+                p1Prev.classList.add('scale-105', 'ring-4', 'ring-blue-500', 'rounded-xl');
+                p2Prev.classList.remove('scale-105', 'ring-4', 'ring-red-500', 'rounded-xl');
+            } else {
+                selText.textContent = "PLAYER 2";
+                selText.className = "font-bold text-red-400 animate-pulse";
+                p1Prev.classList.remove('scale-105', 'ring-4', 'ring-blue-500', 'rounded-xl');
+                p2Prev.classList.add('scale-105', 'ring-4', 'ring-red-500', 'rounded-xl');
+            }
+        }
 
         window.selectArena = function(arena) {
             arenaSelection = arena;
-            document.querySelectorAll('[id^="arena-"]').forEach(el => el.classList.remove('selected'));
-            document.getElementById(`arena-${arena}`).classList.add('selected');
+            ['Valley', 'Forest'].forEach(a => {
+                const el = document.getElementById(`arena-${a}`);
+                if(el) el.classList.remove('ring-2', 'ring-yellow-400');
+            });
+            const target = document.getElementById(`arena-${arena}`);
+            if(target) target.classList.add('ring-2', 'ring-yellow-400');
         };
 
         window.startGame = function(mode) {
@@ -1548,6 +1660,7 @@
         }
         
         updateUI();
+        updateSelectionUI();
         requestAnimationFrame(gameLoop); 
     })();
 </script>
