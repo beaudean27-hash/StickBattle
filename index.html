@@ -289,7 +289,7 @@
             'Primary Lotus': { cost: 40, damage: 55, ninjutsuMsg: "opens the Gates! PRIMARY LOTUS!" },
             'Sand Coffin': { cost: 40, damage: 50, ninjutsuMsg: "crushes with SAND COFFIN!" },
             'Sand Burial': { cost: 100, damage: 100, ninjutsuMsg: "buries the enemy with GIANT SAND BURIAL!" },
-            'Cherry Blossom Clash': { cost: 40, damage: 60, ninjutsuMsg: "smashes the ground! CHERRY BLOSSOM CLASH!" },
+            'Super Punch': { cost: 40, damage: 50, ninjutsuMsg: "lands a devastating SUPER PUNCH!" },
             '100 Healings Smash': { cost: 100, damage: 90, heal: 40, ninjutsuMsg: "activates 100 Healings! SHANNARO!" },
             'Sharingan': { cost: 100, damage: 100, selfDamage: 20, ninjutsuMsg: "unleashes the power of the SHARINGAN!" }
         };
@@ -1355,7 +1355,10 @@
                 if (player.isShukaku) return { name: 'Sand Burial', ...MOVES['Sand Burial'] };
                 return { name: 'Sand Coffin', ...MOVES['Sand Coffin'] };
             }
-            if (player.name === 'Sakura') return { name: '100 Healings', ...MOVES['100 Healings Smash'] };
+            if (player.name === 'Sakura') {
+                if (player.is100Healings) return { name: '100 Healings', ...MOVES['100 Healings Smash'] };
+                return { name: 'Super Punch', ...MOVES['Super Punch'] };
+            }
             if (player.name === 'Naruto') return { name: 'Rasengan', ...MOVES.Rasengan };
             if (player.name === 'Sasuke') {
                 if (player.isCurseMark) return { name: 'Sharingan', ...MOVES.Sharingan };
