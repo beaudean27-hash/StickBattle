@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naruto Battle Arena</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jockey+One&display=swap');
+        body {
+            font-family: 'Jockey One', sans-serif;
+            background-color: #f1f5f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .game-container {
+            background-color: #1f2937;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            border-radius: 16px;
+            padding: 24px;
+            width: 95%;
+            max-width: 900px;
+            position: relative;
+        }
+        .canvas-wrapper {
+            background: linear-gradient(to bottom, #7dd3fc, #3b82f6);
+            border: 4px solid #fcd34d;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        .health-bar-container {
+            height: 20px;
+            background-color: #4b5563;
+            border-radius: 9999px;
+            overflow: hidden;
+            border: 1px solid #1f2937;
+        }
+        .health-bar {
+            height: 100%;
+            transition: width 0.3s ease-in-out, background-color 0.3s;
+        }
+        .chakra-bar {
+            height: 100%;
+            transition: width 0.3s ease-in-out;
+            background-color: #8b5cf6;
+        }
+        .btn-action {
+            font-size: 1.125rem;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            transition: all 0.15s ease-in-out;
+            box-shadow: 0 4px #4b5563;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+        }
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px #4b5563;
+        }
+        .btn-action:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px #4b5563;
+        }
+        .btn-taijutsu { background-color: #ef4444; color: white; }
+        .btn-ninjutsu { background-color: #3b82f6; color: white; }
+        .btn-chakra { background-color: #10b981; color: white; }
+        .btn-rocklee { background-color: #15803d; color: white; }
+        .message-box {
+            min-height: 60px;
+            background-color: #1f2937;
+            border: 2px solid #fcd34d;
+        }
+        /* Start Screen Overlay */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(31, 41, 55, 0.95);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+        .hidden { display: none !important; }
+        
+        .char-btn {
+            border: 2px solid transparent;
+            opacity: 0.6;
+            transition: all 0.2s;
+        }
+        .char-btn.selected {
+            border-color: #fbbf24; /* Yellow border */
+            opacity: 1;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container" class="game-container">
+    
+    <!-- Start Screen Overlay -->
+    <div id="startOverlay" class="overlay">
+        <h1 class="text-5xl text-yellow-400 mb-4 text-center">STICK HOKAGE<br><span class="text-2xl text-white">Battle Arena</span></h1>
+        
+        <div class="w-full max-w-2xl flex flex-col md:flex-row justify-around mb-8 space-y-6 md:space-y-0">
+            <!-- Player 1 Selection -->
+            <div class="flex flex-col items-center">
+                <h2 class="text-white text-xl mb-3">Player 1 (You)</h2>
+                <div class="flex space-x-2">
+                    <button onclick="selectChar(1, 'Naruto')" id="p1-Naruto" class="char-btn selected btn-action bg-orange-500 text-white">Naruto</button>
+                    <button onclick="selectChar(1, 'Sasuke')" id="p1-Sasuke" class="char-btn btn-action bg-blue-600 text-white">Sasuke</button>
+                    <button onclick="selectChar(1, 'Rock Lee')" id="p1-RockLee" class="char-btn btn-action bg-green-600 text-white">Rock Lee</button>
+                </div>
+            </div>
+
+            <!-- Player 2 Selection -->
+            <div class="flex flex-col items-center">
+                <h2 class="text-white text-xl mb-3">Player 2 / CPU</h2>
+                <div class="flex space-x-2">
+                    <button onclick="selectChar(2, 'Naruto')" id="p2-Naruto" class="char-btn btn-action bg-orange-500 text-white">Naruto</button>
+                    <button onclick="selectChar(2, 'Sasuke')" id="p2-Sasuke" class="char-btn selected btn-action bg-blue-600 text-white">Sasuke</button>
+                    <button onclick="selectChar(2, 'Rock Lee')" id="p2-RockLee" class="char-btn btn-action bg-green-600 text-white">Rock Lee</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex space-x-6">
+            <button onclick="startGame('CPU')" class="btn-action bg-yellow-500 text-gray-900 text-2xl hover:bg-yellow-600 min-w-[200px] font-bold">
+                START vs CPU
+            </button>
+            <button onclick="startGame('PVP')" class="btn-action bg-red-500 text-white text-2xl hover:bg-red-600 min-w-[200px] font-bold">
+                START PvP
+            </button>
+        </div>
+    </div>
+
+    <h1 class="text-4xl text-center mb-6 text-yellow-400">STICK HOKAGE: BATTLE ARENA</h1>
+
+    <div class="flex justify-between items-start mb-4 text-white">
+        <div id="player-a-stats" class="w-2/5 p-3 bg-gray-700 rounded-lg shadow-inner">
+            <h2 id="nameA" class="text-xl text-red-400 mb-2">Player A</h2>
+            <div class="mb-1">
+                <p>HP: <span id="hpA">100</span> / <span id="maxHpA">100</span></p>
+                <div class="health-bar-container"><div id="healthBarA" class="health-bar bg-red-500" style="width: 100%;"></div></div>
+            </div>
+            <div>
+                <p>Chakra: <span id="chakraA">50</span> / <span id="maxChakraA">50</span></p>
+                <div class="health-bar-container"><div id="chakraBarA" class="chakra-bar" style="width: 100%;"></div></div>
+            </div>
+        </div>
+
+        <div id="player-b-stats" class="w-2/5 p-3 bg-gray-700 rounded-lg shadow-inner text-right">
+            <h2 id="nameB" class="text-xl text-blue-400 mb-2">Player B</h2>
+            <div class="mb-1">
+                <p>HP: <span id="hpB">100</span> / <span id="maxHpB">100</span></p>
+                <div class="health-bar-container"><div id="healthBarB" class="health-bar bg-red-500" style="width: 100%;"></div></div>
+            </div>
+            <div>
+                <p>Chakra: <span id="chakraB">50</span> / <span id="maxChakraB">50</span></p>
+                <div class="health-bar-container"><div id="chakraBarB" class="chakra-bar" style="width: 100%;"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="canvas-wrapper mb-4 relative">
+        <canvas id="battleCanvas" width="850" height="300"></canvas>
+        <div id="messageBox" class="message-box absolute bottom-0 left-0 w-full p-2 text-center text-yellow-300 text-lg rounded-b-lg border-t-0">
+            Select your fighters!
+        </div>
+    </div>
+
+    <div id="controls" class="flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-4">
+        <div id="controlsA" class="flex justify-center space-x-3 w-full md:w-1/2">
+            <button id="btnTaijutsuA" class="btn-action btn-taijutsu w-1/3" onclick="handleAction('A', 'Taijutsu')">Taijutsu</button>
+            <button id="btnNinjutsuA" class="btn-action btn-ninjutsu w-1/3" onclick="handleAction('A', 'Ninjutsu')">Ninjutsu</button>
+            <button id="btnChakraA" class="btn-action btn-chakra w-1/3" onclick="handleAction('A', 'Chakra')">Focus</button>
+        </div>
+        <!-- Controls B (Hidden in CPU mode) -->
+        <div id="controlsB" class="flex justify-center space-x-3 w-full md:w-1/2">
+            <button id="btnTaijutsuB" class="btn-action btn-taijutsu w-1/3" onclick="handleAction('B', 'Taijutsu')">Taijutsu</button>
+            <button id="btnNinjutsuB" class="btn-action btn-ninjutsu w-1/3" onclick="handleAction('B', 'Ninjutsu')">Ninjutsu</button>
+            <button id="btnChakraB" class="btn-action btn-chakra w-1/3" onclick="handleAction('B', 'Chakra')">Focus</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // --- Game Setup ---
+        const canvas = document.getElementById('battleCanvas');
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width;
+        const H = canvas.height;
+        const GROUND_Y = H - 50; // Raised ground slightly for feet
+        const CHAR_SCALE = 1;
+        const CHAR_SIZE = 20; // Used as a generic size reference for animation offsets
+
+        // Menu State
+        let p1Selection = 'Naruto';
+        let p2Selection = 'Sasuke';
+
+        let gameState = {
+            mode: 'PVP', 
+            playerA: { hp: 100, maxHp: 100, chakra: 50, maxChakra: 50, x: W * 0.2, y: GROUND_Y, color: '#000000', name: 'Naruto', pose: 'idle', isCurseMark: false, isThreeTails: false }, 
+            playerB: { hp: 100, maxHp: 100, chakra: 50, maxChakra: 50, x: W * 0.8, y: GROUND_Y, color: '#000000', name: 'Sasuke', pose: 'idle', isCurseMark: false, isThreeTails: false }, 
+            turn: 'A',
+            isAnimating: false,
+            message: "",
+            effects: [], 
+            floatingTexts: []
+        };
+
+        const MOVES = {
+            'Taijutsu': { cost: 0, damage: 10, msg: "executes a quick combo!" },
+            'Chakra': { cost: 0, chakraGain: 25, msg: "focuses Chakra!" },
+            'Rasengan': { cost: 40, damage: 50, ninjutsuMsg: "shoots a massive RASENGAN!" }, 
+            'Chidori': { cost: 40, damage: 50, ninjutsuMsg: "pierces with CHIDORI!" },
+            'Primary Lotus': { cost: 40, damage: 55, ninjutsuMsg: "opens the Gates! PRIMARY LOTUS!" },
+            'Sharingan': { cost: 100, damage: 100, selfDamage: 20, ninjutsuMsg: "unleashes the power of the SHARINGAN!" }
+        };
+
+        // --- Menu Logic ---
+        window.selectChar = function(player, charName) {
+            if (player === 1) {
+                p1Selection = charName;
+                document.querySelectorAll('[id^="p1-"]').forEach(el => el.classList.remove('selected'));
+                document.getElementById(`p1-${charName.replace(' ','')}`).classList.add('selected');
+            } else {
+                p2Selection = charName;
+                document.querySelectorAll('[id^="p2-"]').forEach(el => el.classList.remove('selected'));
+                document.getElementById(`p2-${charName.replace(' ','')}`).classList.add('selected');
+            }
+        };
+
+        window.startGame = function(mode) {
+            gameState.mode = mode;
+            gameState.playerA.name = p1Selection;
+            gameState.playerB.name = p2Selection;
+            document.getElementById('startOverlay').classList.add('hidden');
+            window.resetGame();
+        };
+
+        // --- Helper Drawing Functions ---
+        function spawnFloatingText(x, y, text, color, isCritical = false) {
+            gameState.floatingTexts.push({
+                x: x, y: y, text: text, color: color, life: 60, maxLife: 60, isCritical: isCritical
+            });
+        }
+
+        function drawFloatingTexts(ctx) {
+            ctx.save();
+            gameState.floatingTexts = gameState.floatingTexts.filter(ft => {
+                const progress = ft.life / ft.maxLife;
+                ctx.globalAlpha = Math.max(0, progress);
+                ctx.fillStyle = ft.color;
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 3;
+                const currentY = ft.y - (60 - ft.life) * 1; 
+                const fontSize = ft.isCritical ? 32 : 20;
+                ctx.font = `bold ${fontSize}px "Jockey One"`;
+                ctx.textAlign = 'center';
+                ctx.strokeText(ft.text, ft.x, currentY);
+                ctx.fillText(ft.text, ft.x, currentY);
+                ft.life--;
+                return ft.life > 0;
+            });
+            ctx.restore();
+        }
+
+        function drawWings(x, y, direction) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(direction, 1); // Scale so +X is Front
+
+            // Helper for hand-wing shape
+            function drawWingShape(color, rot) {
+                ctx.save();
+                ctx.rotate(rot);
+                ctx.fillStyle = color;
+                ctx.strokeStyle = '#111827';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                // Hand-like shape extending backwards (-X)
+                ctx.bezierCurveTo(-30, -50, -80, -60, -120, -40); // Top
+                ctx.bezierCurveTo(-90, -30, -60, -20, -40, -10);
+                ctx.bezierCurveTo(-100, 0, -130, 20, -140, 50); // Middle
+                ctx.bezierCurveTo(-90, 30, -60, 20, -40, 10);
+                ctx.bezierCurveTo(-80, 70, -90, 100, -100, 120); // Bottom
+                ctx.bezierCurveTo(-60, 80, -30, 50, 0, 20);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // Wing 1 (Far/Back)
+            drawWingShape('#374151', -0.2);
+
+            // Wing 2 (Near/Front)
+            drawWingShape('#4b5563', 0.1);
+
+            ctx.restore();
+        }
+
+        function drawThreeTails(x, y, direction) {
+            ctx.save();
+            
+            // Draw three tails
+            for (let i = 0; i < 3; i++) {
+                ctx.strokeStyle = '#dc2626';
+                ctx.fillStyle = '#ef4444';
+                ctx.lineWidth = 3;
+                
+                const tailAngle = (i - 1) * 0.4; // Spread the tails
+                const tailX = x - (60 * direction);
+                const tailY = y - 10;
+                
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                
+                // Create flowing tail shape
+                const cp1x = x - (40 * direction);
+                const cp1y = y - 20 + (i * 10);
+                const cp2x = x - (80 * direction);
+                const cp2y = y + (i * 15);
+                const endX = x - (100 * direction);
+                const endY = y + 10 + (i * 20);
+                
+                ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endX, endY);
+                ctx.lineTo(endX - (10 * direction), endY - 5);
+                ctx.bezierCurveTo(cp2x - (10 * direction), cp2y, cp1x - (5 * direction), cp1y, x, y - 5);
+                
+                ctx.fill();
+                ctx.stroke();
+            }
+            
+            // Orange energy aura around character
+            ctx.fillStyle = 'rgba(249, 115, 22, 0.3)';
+            ctx.beginPath();
+            ctx.arc(x, y - 30, 40, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.restore();
+        }
+
+        // --- NEW REALISTIC CHARACTER DRAWING ---
+        function drawCharacter(player, ctx) {
+            const x = player.x;
+            const y = player.y; // Feet position
+            const isPlayerA = (player === gameState.playerA);
+            const direction = isPlayerA ? 1 : -1;
+            const isKicking = player.pose === 'kicking';
+            const isDefeated = player.pose === 'defeated';
+
+            // Dimensions (Realistic-ish Chibi)
+            const headSize = 14;
+            const bodyW = 16;
+            const bodyH = 28;
+            const limbW = 5;
+            const limbL = 18;
+
+            // Rotation adjustments for defeated
+            let angle = 0;
+            let drawX = x;
+            let drawY = y;
+            
+            if (isDefeated) {
+                angle = isPlayerA ? -Math.PI / 2 : Math.PI / 2;
+                drawY = y - 10; // Lie on ground
+            }
+
+            ctx.save();
+            ctx.translate(drawX, drawY);
+            ctx.rotate(angle);
+
+            // Center coordinate system at feet: (0, 0)
+            // Body is drawn upwards from 0
+            
+            // Skin Tone
+            let skinColor = '#ffdfc4'; // Light peach
+            if (player.name === 'Sasuke' && player.isCurseMark) skinColor = '#71717a'; // Grey
+            if (player.name === 'Naruto' && player.isThreeTails) skinColor = '#fb923c'; // Orange tint
+            if (player.name === 'Rock Lee' && player.isNinthGate) skinColor = '#b91c1c'; // Deep Red
+
+            // --- Wings (Background) ---
+            if (player.name === 'Sasuke' && player.isCurseMark) {
+                // Draw wings behind body
+                drawWings(0, -45, direction); 
+            }
+            
+            // --- Three Tails (Background) ---
+            if (player.name === 'Naruto' && player.isThreeTails) {
+                // Draw three tails behind body
+                drawThreeTails(0, -20, direction);
+            }
+            
+            // --- 9th Gate Aura (Background) ---
+            if (player.name === 'Rock Lee' && player.isNinthGate) {
+                ctx.save();
+                ctx.fillStyle = 'rgba(220, 38, 38, 0.4)'; // Red aura
+                ctx.shadowColor = '#ef4444';
+                ctx.shadowBlur = 20;
+                ctx.beginPath();
+                ctx.arc(0, -30, 45, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // --- Legs ---
+            // Leg Colors
+            let legColor = '#e5e7eb'; // Default
+            if (player.name === 'Naruto') legColor = '#f97316'; // Orange pants
+            else if (player.name === 'Sasuke') legColor = '#e5e7eb'; // White shorts
+            else if (player.name === 'Rock Lee') legColor = '#16a34a'; // Green jumpsuit
+
+            ctx.fillStyle = legColor;
+            ctx.strokeStyle = '#1f2937';
+            ctx.lineWidth = 1;
+
+            // Leg positions
+            let leg1Rot = 0; 
+            let leg2Rot = 0;
+            
+            if (isKicking) {
+                // Front leg up
+                leg1Rot = -Math.PI / 3 * direction; // Kick up
+                leg2Rot = Math.PI / 6 * direction; // Back leg stance
+            }
+
+            // Draw Leg 2 (Back)
+            ctx.save();
+            ctx.translate(-4 * direction, -limbL); // Hip joint
+            ctx.rotate(leg2Rot);
+            ctx.fillStyle = legColor;
+            if(player.name === 'Rock Lee') {
+                 // Orange Leg Warmers
+                 ctx.fillStyle = '#f97316';
+                 ctx.fillRect(-limbW/2, 0, limbW, limbL); // Lower leg
+                 ctx.fillStyle = '#16a34a';
+                 ctx.fillRect(-limbW/2, -5, limbW, 10); // Upper leg part
+            } else {
+                ctx.fillRect(-limbW/2, 0, limbW, limbL);
+            }
+            // Sandals
+            ctx.fillStyle = '#1f2937';
+            ctx.fillRect(-limbW/2 - 2*direction, limbL-2, limbW+4, 4);
+            ctx.restore();
+
+            // Draw Leg 1 (Front)
+            ctx.save();
+            ctx.translate(4 * direction, -limbL); // Hip joint
+            ctx.rotate(leg1Rot);
+            ctx.fillStyle = legColor;
+             if(player.name === 'Rock Lee') {
+                 ctx.fillStyle = '#f97316';
+                 ctx.fillRect(-limbW/2, 0, limbW, limbL);
+                 ctx.fillStyle = '#16a34a';
+                 ctx.fillRect(-limbW/2, -5, limbW, 10);
+            } else {
+                ctx.fillRect(-limbW/2, 0, limbW, limbL);
+            }
+            // Sandals
+            ctx.fillStyle = '#1f2937';
+            ctx.fillRect(-limbW/2 - 2*direction, limbL-2, limbW+4, 4);
+            ctx.restore();
+
+
+            // --- Body/Torso ---
+            let bodyColor = '#f97316';
+            if (player.name === 'Sasuke') bodyColor = '#1e3a8a'; // Blue
+            if (player.name === 'Rock Lee') bodyColor = '#16a34a'; // Green
+
+            ctx.fillStyle = bodyColor;
+            // Torso Rect
+            ctx.fillRect(-bodyW/2, -bodyH - limbL, bodyW, bodyH);
+            
+            // Vest / Details
+            if (player.name === 'Naruto') {
+                // Blue shoulders
+                ctx.fillStyle = '#1e3a8a';
+                ctx.fillRect(-bodyW/2, -bodyH - limbL, bodyW, 8);
+                // Spiral crest (simplified)
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath(); ctx.arc(0, -bodyH - limbL + 14, 4, 0, Math.PI*2); ctx.fill();
+            }
+            else if (player.name === 'Rock Lee') {
+                 // Red Belt
+                 ctx.fillStyle = '#ef4444';
+                 ctx.fillRect(-bodyW/2, -limbL - 4, bodyW, 4);
+            }
+
+
+            // --- Head ---
+            const neckY = -bodyH - limbL;
+            ctx.translate(0, neckY);
+            
+            // Skin Circle
+            ctx.fillStyle = skinColor;
+            ctx.beginPath();
+            ctx.arc(0, -headSize, headSize, 0, Math.PI*2);
+            ctx.fill();
+
+            // Face (Eyes) - Simple dots
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(4 * direction, -headSize - 1, 1.5, 0, Math.PI*2); // Front eye
+            ctx.fill();
+            
+            // Three-tails form: glowing red eyes
+            if (player.name === 'Naruto' && player.isThreeTails) {
+                ctx.fillStyle = '#dc2626';
+                ctx.shadowColor = '#ef4444';
+                ctx.shadowBlur = 5;
+                ctx.beginPath();
+                ctx.arc(4 * direction, -headSize - 1, 2, 0, Math.PI*2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+
+            // Headband
+            if (player.name !== 'Rock Lee') { // Lee wears it on waist
+                ctx.fillStyle = '#1f2937'; // Navy band
+                ctx.fillRect(-headSize - 2, -headSize - 10, headSize*2 + 4, 6);
+                ctx.fillStyle = '#d1d5db'; // Metal plate
+                ctx.fillRect(-6, -headSize - 9, 12, 4);
+            }
+
+            // --- Hair ---
+            ctx.fillStyle = '#fcd34d'; // Blonde default
+            
+            if (player.name === 'Naruto') {
+                ctx.fillStyle = player.isThreeTails ? '#dc2626' : '#facc15'; // Red in three-tails form, yellow normal
+                ctx.beginPath();
+                // Spikes
+                ctx.moveTo(-headSize, -headSize - 8);
+                for(let i=0; i<5; i++) {
+                    ctx.lineTo(-headSize + (i*6), -headSize - 18);
+                    ctx.lineTo(-headSize + (i*6) + 3, -headSize - 8);
+                }
+                ctx.fill();
+                
+                // Add whisker marks (more pronounced in three-tails form)
+                ctx.strokeStyle = player.isThreeTails ? '#dc2626' : '#1f2937';
+                ctx.lineWidth = player.isThreeTails ? 2 : 1;
+                for(let w = 0; w < 3; w++) {
+                    ctx.beginPath();
+                    ctx.moveTo(3 * direction, -headSize + 2 + (w * 3));
+                    ctx.lineTo(10 * direction, -headSize + (w * 3));
+                    ctx.stroke();
+                }
+            } 
+            else if (player.name === 'Sasuke') {
+                ctx.fillStyle = player.isCurseMark ? '#374151' : '#111827'; // Greyish blue or Black
+                ctx.beginPath();
+                // Duckbutt spikes back
+                ctx.moveTo(-headSize, -headSize);
+                ctx.lineTo(-headSize - 8, -headSize - 5);
+                ctx.lineTo(-headSize - 2, -headSize - 15);
+                ctx.lineTo(0, -headSize - 5);
+                // Bangs
+                ctx.lineTo(headSize + 2, -headSize + 5);
+                ctx.lineTo(headSize, -headSize - 5);
+                ctx.fill();
+            }
+            else if (player.name === 'Rock Lee') {
+                ctx.fillStyle = '#000'; // Black
+                ctx.beginPath();
+                // Bowl cut
+                ctx.arc(0, -headSize - 2, headSize + 1, Math.PI, 0);
+                ctx.lineTo(headSize + 1, -headSize + 5);
+                ctx.lineTo(-headSize - 1, -headSize + 5);
+                ctx.fill();
+                // Shine
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.fillRect(-8, -headSize - 10, 4, 4);
+            }
+
+
+            // --- Arms ---
+            // Reset to Neck
+            // Draw Arm (Simple swinging rect)
+            let armRot = isKicking ? -Math.PI/4 * direction : 0;
+            if (player.pose === 'kicking') armRot = Math.PI/2 * direction; // Punch/Balance
+            
+            ctx.fillStyle = bodyColor; 
+            if(player.name === 'Sasuke') {
+                // White arm warmers
+                ctx.fillStyle = '#e5e7eb'; 
+            }
+            else if (player.name === 'Rock Lee') ctx.fillStyle = '#16a34a';
+
+            ctx.save();
+            ctx.translate(0, 0); // Shoulder
+            ctx.rotate(armRot);
+            ctx.fillRect(-2, 0, 4, 16); // Arm
+            
+            // Hand
+            ctx.fillStyle = skinColor;
+            ctx.beginPath(); ctx.arc(0, 18, 3, 0, Math.PI*2); ctx.fill();
+            
+            ctx.restore();
+
+            ctx.restore();
+            
+            // Name Label
+            ctx.fillStyle = 'white'; 
+            ctx.font = '14px "Jockey One"'; 
+            ctx.textAlign = 'center';
+            if (!isDefeated) ctx.fillText(player.name, x, y + 20);
+        }
+
+        function drawTaijutsuHit(ctx, effect) {
+            const { x, y, frame } = effect;
+            const maxRadius = 25; 
+            const duration = 8; 
+            const radius = maxRadius * (frame / duration); 
+            ctx.save();
+            ctx.fillStyle = `rgba(255, 0, 0, ${0.7 - frame / duration})`; 
+            ctx.shadowColor = '#FF0000'; ctx.shadowBlur = 10;
+            ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
+            ctx.restore();
+        }
+
+        function drawChakraFocus(ctx, effect) {
+            const { x, y, frame } = effect;
+            const maxRadius = 30; const duration = 40;
+            const radius = maxRadius * (frame / duration); 
+            ctx.save();
+            ctx.strokeStyle = `rgba(16, 185, 129, ${0.7 - frame / duration})`; 
+            ctx.fillStyle = `rgba(16, 185, 129, ${0.1 - frame / duration})`;
+            ctx.lineWidth = 4; ctx.shadowColor = '#10b981'; ctx.shadowBlur = 10;
+            ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.stroke(); ctx.fill();
+            ctx.restore();
+        }
+        
+        function drawRasenganProjectile(x, y, frame, startX, targetX) {
+            ctx.save();
+            ctx.shadowColor = '#3b82f6'; ctx.shadowBlur = 20;
+            const dir = targetX > startX ? 1 : -1;
+            ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 40 * dir, y); 
+            ctx.strokeStyle = 'rgba(59, 130, 246, 0.5)'; ctx.lineWidth = 15; ctx.lineCap = 'round'; ctx.stroke();
+            ctx.fillStyle = '#60a5fa'; ctx.beginPath(); ctx.arc(x, y, 18, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#eff6ff'; ctx.beginPath(); ctx.arc(x, y, 10, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = 'white'; ctx.lineWidth = 2;
+            ctx.beginPath(); for (let i = 0; i < 3; i++) { ctx.arc(x, y, 15, frame * 0.5 + (i*2), frame * 0.5 + (i*2) + 1); } ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawChidori(x, y, frame) {
+            ctx.save();
+            ctx.shadowColor = '#fcd34d'; ctx.shadowBlur = 15;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)'; ctx.lineWidth = 3;
+            for (let i = 0; i < 5; i++) {
+                ctx.beginPath();
+                let startX = x + Math.random() * 10 - 5; let startY = y + Math.random() * 10 - 5;
+                ctx.moveTo(startX, startY);
+                for (let j = 0; j < 3; j++) {
+                    startX += Math.random() * 15 * (Math.random() > 0.5 ? 1 : -1);
+                    startY += Math.random() * 15 * (Math.random() > 0.5 ? 1 : -1);
+                    ctx.lineTo(startX, startY);
+                }
+                ctx.stroke();
+            }
+            ctx.fillStyle = 'white'; ctx.globalAlpha = (Math.sin(frame * 0.5) + 1) / 4 + 0.5;
+            ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.fill();
+            ctx.restore();
+        }
+
+        function drawSharinganEffect(ctx, x, y, frame) {
+            ctx.save();
+            
+            // Darken background
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+            const opacity = Math.min(1, Math.sin(frame * 0.15) * 0.5 + 0.8); 
+            ctx.globalAlpha = opacity;
+            
+            const eyeSpacing = 160;
+            const eyeY = y - 40;
+            
+            function drawEye(ex, ey) {
+                // Eye Shape (Red)
+                ctx.fillStyle = '#dc2626'; 
+                ctx.shadowColor = '#ef4444';
+                ctx.shadowBlur = 20;
+                ctx.beginPath();
+                ctx.ellipse(ex, ey, 90, 55, 0, 0, Math.PI*2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                
+                // Pupil (Black)
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(ex, ey, 18, 0, Math.PI*2);
+                ctx.fill();
+                
+                // Tomoe Ring
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(ex, ey, 35, 0, Math.PI*2);
+                ctx.stroke();
+
+                // Tomoe (Comma shapes)
+                ctx.fillStyle = '#000';
+                for(let i=0; i<3; i++) {
+                    const angle = (frame * -0.2) + (i * Math.PI * 2 / 3) - Math.PI/2;
+                    const tx = ex + Math.cos(angle) * 35;
+                    const ty = ey + Math.sin(angle) * 35;
+                    
+                    ctx.beginPath();
+                    ctx.arc(tx, ty, 10, 0, Math.PI*2);
+                    ctx.fill();
+                }
+            }
+
+            drawEye(x - eyeSpacing/2, eyeY);
+            drawEye(x + eyeSpacing/2, eyeY);
+            
+            ctx.restore();
+        }
+
+        function drawCanvasContent() {
+            ctx.clearRect(0, 0, W, H);
+            ctx.fillStyle = '#b8860b'; ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
+
+            drawCharacter(gameState.playerA, ctx);
+            drawCharacter(gameState.playerB, ctx);
+            drawFloatingTexts(ctx);
+
+            gameState.effects = gameState.effects.filter(effect => {
+                if (effect.type === 'TaijutsuHit') {
+                    if (effect.frame < 8) { drawTaijutsuHit(ctx, effect); effect.frame++; return true; }
+                } else if (effect.type === 'ChakraFocus') {
+                    if (effect.frame < 40) { drawChakraFocus(ctx, effect); effect.frame++; return true; }
+                }
+                return false;
+            });
+        }
+
+        // --- Animations ---
+
+        function animateTaijutsu(attacker, target, isUltimate = false) {
+            const startX = attacker.x;
+            const targetX = target.x;
+            const targetY = target.y - 20;
+            const animationDuration = isUltimate ? 20 : 10; 
+
+            return new Promise(resolve => {
+                let frame = 0;
+                function step() {
+                    frame++;
+                    const progress = frame / animationDuration;
+                    
+                    if(isUltimate) {
+                        ctx.fillStyle = 'rgba(21, 128, 61, 0.2)'; // Green trail
+                        ctx.fillRect(attacker.x - 5, attacker.y - 50, 10, 50);
+                    }
+
+                    if (frame <= animationDuration / 2) {
+                        attacker.x = startX + (target.x - startX) * progress * 2 * 0.85; 
+                    } else if (frame <= animationDuration) {
+                        attacker.x = target.x - (target.x - startX) * (frame - animationDuration / 2) * 2 / animationDuration * 0.85;
+                    } else {
+                        attacker.x = startX;
+                        gameState.effects.push({ type: 'TaijutsuHit', x: targetX, y: targetY, frame: 0 });
+                        resolve(); return;
+                    }
+                    requestAnimationFrame(step);
+                }
+                requestAnimationFrame(step);
+            });
+        }
+
+        function animateNinjutsu(attacker, target, jutsuType) {
+            const offsetX = (attacker === gameState.playerA) ? CHAR_SIZE * 0.7 : -CHAR_SIZE * 0.7;
+            const startX = attacker.x + offsetX;
+            const startY = attacker.y - 30;
+            const targetOffsetX = (target === gameState.playerB) ? 15 : -15;
+            const targetX = target.x + targetOffsetX;
+            const targetY = target.y - 30;
+            const animationDuration = 30; 
+
+            return new Promise(resolve => {
+                let frame = 0;
+                function step() {
+                    frame++;
+                    const progress = frame / animationDuration;
+                    if (frame < animationDuration) {
+                        const currentX = startX + (targetX - startX) * progress;
+                        const currentY = startY + (targetY - startY) * progress;
+                        drawCanvasContent(); 
+                        if (jutsuType === 'Rasengan') {
+                            drawRasenganProjectile(currentX, currentY, frame, startX, targetX);
+                        } else if (jutsuType === 'Sharingan') {
+                            drawSharinganEffect(ctx, W/2, H/2, frame);
+                        } else {
+                            drawChidori(currentX, currentY, frame);
+                        }
+                        requestAnimationFrame(step);
+                    } else {
+                        gameState.effects.push({ type: 'TaijutsuHit', x: targetX, y: targetY, frame: 0 });
+                        resolve(); return;
+                    }
+                }
+                requestAnimationFrame(step);
+            });
+        }
+
+        let lastTime = 0;
+        const FPS = 60;
+        const frameDuration = 1000 / FPS;
+        
+        function gameLoop(timestamp) {
+            requestAnimationFrame(gameLoop);
+            if (timestamp < lastTime + frameDuration) return;
+            lastTime = timestamp;
+            drawCanvasContent();
+        }
+
+        // --- AI Logic ---
+
+        function cpuAI() {
+            if (gameState.turn !== 'B' || gameState.mode !== 'CPU' || checkWinCondition()) return;
+
+            const me = gameState.playerB;
+            let action = '';
+
+            let ultimateCost = getUltimateMove(me).cost;
+            
+            if (me.hp < 30 && me.chakra >= 20) {
+                action = 'Chakra';
+            } else if (me.chakra >= ultimateCost) {
+                action = Math.random() < 0.7 ? 'Ninjutsu' : 'Taijutsu';
+            } else {
+                action = Math.random() < 0.6 ? 'Taijutsu' : 'Chakra';
+            }
+
+            window.handleAction('B', action);
+        }
+
+        const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
+
+        function getUltimateMove(player) {
+            if (player.name === 'Rock Lee') return { name: 'Primary Lotus', ...MOVES['Primary Lotus'] };
+            if (player.name === 'Naruto') return { name: 'Rasengan', ...MOVES.Rasengan };
+            if (player.name === 'Sasuke') {
+                if (player.isCurseMark) return { name: 'Sharingan', ...MOVES.Sharingan };
+                return { name: 'Chidori', ...MOVES.Chidori };
+            }
+            return { name: 'Attack', cost: 999 };
+        }
+
+        function updateUI() {
+            const p1 = gameState.playerA;
+            document.getElementById('nameA').textContent = `${p1.name} (P1)`;
+            document.getElementById('nameA').className = `text-xl mb-2 ${p1.name === 'Naruto' ? 'text-orange-400' : p1.name === 'Sasuke' ? 'text-blue-400' : 'text-green-500'}`;
+            document.getElementById('hpA').textContent = p1.hp;
+            document.getElementById('maxHpA').textContent = p1.maxHp;
+            document.getElementById('chakraA').textContent = p1.chakra;
+            document.getElementById('maxChakraA').textContent = p1.maxChakra;
+            document.getElementById('healthBarA').style.width = `${(p1.hp / p1.maxHp) * 100}%`;
+            document.getElementById('chakraBarA').style.width = `${(p1.chakra / p1.maxChakra) * 100}%`;
+
+            const p2 = gameState.playerB;
+            document.getElementById('nameB').textContent = `${p2.name} (P2)`;
+            document.getElementById('nameB').className = `text-xl mb-2 ${p2.name === 'Naruto' ? 'text-orange-400' : p2.name === 'Sasuke' ? 'text-blue-400' : 'text-green-500'}`;
+            document.getElementById('hpB').textContent = p2.hp;
+            document.getElementById('maxHpB').textContent = p2.maxHp;
+            document.getElementById('chakraB').textContent = p2.chakra;
+            document.getElementById('maxChakraB').textContent = p2.maxChakra;
+            document.getElementById('healthBarB').style.width = `${(p2.hp / p2.maxHp) * 100}%`;
+            document.getElementById('chakraBarB').style.width = `${(p2.chakra / p2.maxChakra) * 100}%`;
+
+            const isA = gameState.turn === 'A';
+            const gameOver = checkWinCondition();
+
+            const controlsA = document.getElementById('controlsA');
+            controlsA.style.pointerEvents = isA && !gameOver ? 'auto' : 'none';
+            controlsA.style.opacity = isA && !gameOver ? '1' : '0.5';
+
+            const p1Ult = getUltimateMove(p1);
+            const btnNinjutsuA = document.getElementById('btnNinjutsuA');
+            const isAReady = p1.chakra >= p1Ult.cost;
+            btnNinjutsuA.textContent = isAReady ? p1Ult.name : `${p1Ult.name} (${p1Ult.cost})`;
+            btnNinjutsuA.disabled = !isAReady || gameOver;
+            btnNinjutsuA.className = `btn-action w-1/3 ${!isAReady ? 'opacity-50' : ''} ${p1.name === 'Rock Lee' ? 'btn-rocklee' : p1.name === 'Sasuke' ? 'bg-blue-600 text-white' : 'btn-ninjutsu'}`;
+
+            const controlsB = document.getElementById('controlsB');
+            if (gameState.mode === 'CPU') {
+                controlsB.style.display = 'none';
+            } else {
+                controlsB.style.display = 'flex';
+                controlsB.style.pointerEvents = !isA && !gameOver ? 'auto' : 'none';
+                controlsB.style.opacity = !isA && !gameOver ? '1' : '0.5';
+            }
+
+            const p2Ult = getUltimateMove(p2);
+            const btnNinjutsuB = document.getElementById('btnNinjutsuB');
+            const isBReady = p2.chakra >= p2Ult.cost;
+            btnNinjutsuB.textContent = isBReady ? p2Ult.name : `${p2Ult.name} (${p2Ult.cost})`;
+            btnNinjutsuB.disabled = !isBReady || gameOver;
+            btnNinjutsuB.className = `btn-action w-1/3 ${!isBReady ? 'opacity-50' : ''} ${p2.name === 'Rock Lee' ? 'btn-rocklee' : p2.name === 'Sasuke' ? 'bg-blue-600 text-white' : 'btn-ninjutsu'}`;
+
+            document.getElementById('messageBox').textContent = gameState.message || (gameState.turn === 'A' ? `${p1.name}'s Turn.` : `${p2.name}'s Turn.`);
+        }
+
+        function checkWinCondition() {
+            if (gameState.playerA.hp <= 0) return true;
+            if (gameState.playerB.hp <= 0) return true;
+            return false;
+        }
+
+        function endGame(winnerMsg) {
+            gameState.message = `GAME OVER! ${winnerMsg}`;
+            document.getElementById('messageBox').textContent = gameState.message;
+            document.getElementById('controlsA').style.pointerEvents = 'none';
+            document.getElementById('controlsB').style.pointerEvents = 'none';
+
+            if (!document.getElementById('btnRestart')) {
+                const restartBtn = document.createElement('button');
+                restartBtn.id = 'btnRestart';
+                restartBtn.className = 'btn-action bg-yellow-500 hover:bg-yellow-600 text-gray-900 mt-4 mx-auto w-full max-w-sm font-bold';
+                restartBtn.textContent = 'Back to Menu';
+                restartBtn.onclick = () => {
+                    document.getElementById('startOverlay').classList.remove('hidden');
+                    restartBtn.remove();
+                };
+                document.getElementById('controls').appendChild(restartBtn);
+            }
+        }
+
+        window.resetGame = function() {
+            gameState.playerA = { hp: 100, maxHp: 100, chakra: 50, maxChakra: 50, x: W * 0.2, y: GROUND_Y, color: '#000000', name: p1Selection, pose: 'idle', isCurseMark: false, isThreeTails: false, isNinthGate: false };
+            gameState.playerB = { hp: 100, maxHp: 100, chakra: 50, maxChakra: 50, x: W * 0.8, y: GROUND_Y, color: '#000000', name: p2Selection, pose: 'idle', isCurseMark: false, isThreeTails: false, isNinthGate: false };
+            gameState.turn = 'A';
+            gameState.isAnimating = false;
+            gameState.effects = [];
+            gameState.floatingTexts = [];
+            gameState.message = `FIGHT! ${gameState.playerA.name} vs ${gameState.playerB.name}`;
+            const restartBtn = document.getElementById('btnRestart');
+            if (restartBtn) restartBtn.remove();
+            updateUI();
+        }
+
+        window.handleAction = async function(attackerId, actionType) {
+            if (gameState.isAnimating || checkWinCondition()) return;
+            gameState.isAnimating = true;
+
+            const attacker = attackerId === 'A' ? gameState.playerA : gameState.playerB;
+            const target = attackerId === 'A' ? gameState.playerB : gameState.playerA;
+            const size = CHAR_SIZE; // Use the defined constant
+            
+            let move;
+            let msg = "";
+
+            if (actionType === 'Taijutsu') {
+                move = MOVES.Taijutsu;
+                let damage = move.damage; 
+                
+                if (attacker.name === 'Rock Lee') {
+                    damage = Math.floor(damage * 1.25); 
+                }
+
+                let missChance = 0.25;
+                if (target.name === 'Rock Lee' && target.isNinthGate) missChance = 0.50;
+                let isMiss = Math.random() < missChance;
+                let isCrit = false;
+
+                if (isMiss) {
+                    damage = 0;
+                    msg = `${attacker.name} ${move.msg} BUT MISSED!`;
+                } else {
+                    if (Math.random() < 0.20) {
+                        isCrit = true; damage = Math.floor(damage * 1.5); 
+                        msg = `${attacker.name} ${move.msg} CRITICAL HIT!`;
+                    } else {
+                        msg = `${attacker.name} ${move.msg}`;
+                    }
+                }
+                
+                target.hp = clamp(target.hp - damage, 0, target.maxHp);
+                attacker.pose = 'kicking';
+                await animateTaijutsu(attacker, target); 
+                
+                if (isMiss) {
+                    spawnFloatingText(target.x, target.y - 60, "MISS", '#9ca3af', true);
+                } else {
+                    spawnFloatingText(target.x, target.y - 60, `-${damage}`, '#ef4444', isCrit);
+                    if(isCrit) spawnFloatingText(target.x, target.y - 90, `CRITICAL!`, '#fcd34d', true);
+                }
+                attacker.pose = 'idle';
+
+            } else if (actionType === 'Chakra') {
+                move = MOVES.Chakra;
+                const hpGain = Math.floor(Math.random() * 11) + 5;
+                attacker.chakra = clamp(attacker.chakra + move.chakraGain, 0, attacker.maxChakra);
+                attacker.hp = clamp(attacker.hp + hpGain, 0, attacker.maxHp);
+                msg = `${attacker.name} ${move.msg}`;
+                gameState.effects.push({ type: 'ChakraFocus', x: attacker.x, y: (attacker.y - size * 2) - size, frame: 0 });
+                spawnFloatingText(attacker.x, attacker.y - 60, `+${hpGain} HP`, '#10b981');
+            } else if (actionType === 'Ninjutsu') {
+                const ultMove = getUltimateMove(attacker);
+                move = ultMove; 
+
+                if (attacker.chakra < move.cost) {
+                    gameState.isAnimating = false;
+                    updateUI(); return;
+                }
+
+                let missChance = 0.25;
+                if (target.name === 'Rock Lee' && target.isNinthGate) missChance = 0.50;
+                let isMiss = Math.random() < missChance;
+                let damage = move.damage; 
+                let isCrit = false;
+
+                if (isMiss) {
+                    damage = 0;
+                    msg = `${attacker.name} ${move.ninjutsuMsg} BUT MISSED!`;
+                } else {
+                    if (Math.random() < 0.20) {
+                        isCrit = true; damage = Math.floor(damage * 1.5); 
+                        msg = `${attacker.name} ${move.ninjutsuMsg} CRITICAL!`;
+                    } else {
+                        msg = `${attacker.name} ${move.ninjutsuMsg}`;
+                    }
+                }
+
+                attacker.chakra -= move.cost;
+                if (move.selfDamage) {
+                    attacker.hp = clamp(attacker.hp - move.selfDamage, 0, attacker.maxHp);
+                    spawnFloatingText(attacker.x, attacker.y - 60, `-${move.selfDamage} (Self)`, '#ef4444');
+                }
+                target.hp = clamp(target.hp - damage, 0, target.maxHp);
+                
+                if (attacker.name === 'Rock Lee') {
+                    attacker.pose = 'kicking';
+                    await animateTaijutsu(attacker, target, true);
+                    attacker.pose = 'idle';
+                } else {
+                    let jutsuType = 'Chidori';
+                    if (attacker.name === 'Naruto') jutsuType = 'Rasengan';
+                    else if (attacker.name === 'Sasuke' && attacker.isCurseMark) jutsuType = 'Sharingan';
+                    
+                    await animateNinjutsu(attacker, target, jutsuType);
+                }
+
+                if (isMiss) {
+                    spawnFloatingText(target.x, target.y - 60, "MISS", '#9ca3af', true);
+                } else {
+                    spawnFloatingText(target.x, target.y - 60, `-${damage}`, '#3b82f6', isCrit);
+                    if(isCrit) spawnFloatingText(target.x, target.y - 90, `CRITICAL!`, '#fcd34d', true);
+                }
+            }
+
+            gameState.message = msg;
+            
+            if (target.name === 'Sasuke' && target.hp <= 0 && !target.isCurseMark) {
+                if (Math.random() < 0.5) {
+                    target.isCurseMark = true;
+                    target.hp = 200;
+                    target.maxHp = 200;
+                    target.chakra = 100;
+                    target.maxChakra = 100;
+                    gameState.message = "SASUKE AWAKENS! CURSE MARK LEVEL 2!";
+                    spawnFloatingText(target.x, target.y - 90, "CURSE MARK!", "#a855f7", true);
+                    gameState.effects.push({ type: 'ChakraFocus', x: target.x, y: (target.y - size * 2) - size, frame: 0 });
+                }
+            }
+            
+            // Naruto Three-Tails Transformation (50% chance)
+            if (target.name === 'Naruto' && target.hp <= 0 && !target.isThreeTails) {
+                if (Math.random() < 0.5) {
+                    target.isThreeTails = true;
+                    target.hp = 200;
+                    target.maxHp = 200;
+                    target.chakra = 100;
+                    target.maxChakra = 100;
+                    gameState.message = "NARUTO TRANSFORMS! THREE-TAILS FORM!";
+                    spawnFloatingText(target.x, target.y - 90, "THREE-TAILS!", "#ef4444", true);
+                    gameState.effects.push({ type: 'ChakraFocus', x: target.x, y: (target.y - size * 2) - size, frame: 0 });
+                }
+            }
+            
+            // Rock Lee 9th Gate (50% chance)
+            if (target.name === 'Rock Lee' && target.hp <= 0 && !target.isNinthGate) {
+                if (Math.random() < 0.5) {
+                    target.isNinthGate = true;
+                    target.hp = 200;
+                    target.maxHp = 200;
+                    target.chakra = 100;
+                    target.maxChakra = 100;
+                    gameState.message = "ROCK LEE OPENS THE 9TH GATE! GATE OF PAIN!";
+                    spawnFloatingText(target.x, target.y - 90, "9TH GATE!", "#ef4444", true);
+                    gameState.effects.push({ type: 'ChakraFocus', x: target.x, y: (target.y - size * 2) - size, frame: 0 });
+                }
+            }
+
+            updateUI();
+
+            if (checkWinCondition()) {
+                if(gameState.playerA.hp <= 0) { gameState.playerA.pose = 'defeated'; endGame(`${gameState.playerB.name} Wins!`); }
+                else { gameState.playerB.pose = 'defeated'; endGame(`${gameState.playerA.name} Wins!`); }
+                gameState.isAnimating = false;
+                return;
+            }
+
+            setTimeout(() => {
+                gameState.turn = attackerId === 'A' ? 'B' : 'A';
+                gameState.message = null; 
+                updateUI();
+                gameState.isAnimating = false;
+                
+                if (gameState.turn === 'B' && gameState.mode === 'CPU') {
+                    setTimeout(cpuAI, 800);
+                }
+            }, (actionType === 'Ninjutsu' || actionType === 'Taijutsu') ? 800 : 400); 
+        }
+        
+        updateUI();
+        requestAnimationFrame(gameLoop); 
+    })();
+</script>
+</body>
+</html>
