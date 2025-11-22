@@ -132,6 +132,15 @@
             </div>
         </div>
 
+        <!-- Arena Selection -->
+        <div class="flex flex-col items-center mb-8">
+            <h2 class="text-white text-xl mb-3">Select Arena</h2>
+            <div class="flex space-x-4">
+                <button onclick="selectArena('Valley')" id="arena-Valley" class="char-btn selected btn-action bg-blue-500 text-white">Valley of the End</button>
+                <button onclick="selectArena('Forest')" id="arena-Forest" class="char-btn btn-action bg-green-800 text-white">Forest of Death</button>
+            </div>
+        </div>
+
         <div class="flex space-x-6">
             <button onclick="startGame('CPU')" class="btn-action bg-yellow-500 text-gray-900 text-2xl hover:bg-yellow-600 min-w-[200px] font-bold">
                 START vs CPU
@@ -206,9 +215,11 @@
         // Menu State
         let p1Selection = 'Naruto';
         let p2Selection = 'Sasuke';
+        let arenaSelection = 'Valley';
 
         let gameState = {
             mode: 'PVP', 
+            arena: 'Valley', 
             playerA: { hp: 100, maxHp: 100, chakra: 50, maxChakra: 50, x: W * 0.2, y: GROUND_Y, color: '#000000', name: 'Naruto', pose: 'idle', isCurseMark: false, isThreeTails: false }, 
             playerB: { hp: 100, maxHp: 100, chakra: 50, maxChakra: 50, x: W * 0.8, y: GROUND_Y, color: '#000000', name: 'Sasuke', pose: 'idle', isCurseMark: false, isThreeTails: false }, 
             turn: 'A',
@@ -240,10 +251,17 @@
             }
         };
 
+        window.selectArena = function(arena) {
+            arenaSelection = arena;
+            document.querySelectorAll('[id^="arena-"]').forEach(el => el.classList.remove('selected'));
+            document.getElementById(`arena-${arena}`).classList.add('selected');
+        };
+
         window.startGame = function(mode) {
             gameState.mode = mode;
             gameState.playerA.name = p1Selection;
             gameState.playerB.name = p2Selection;
+            gameState.arena = arenaSelection;
             document.getElementById('startOverlay').classList.add('hidden');
             window.resetGame();
         };
@@ -730,9 +748,203 @@
             ctx.restore();
         }
 
+        function drawBackground() {
+            if (gameState.arena === 'Valley') {
+                // Sky Gradient
+                const grad = ctx.createLinearGradient(0, 0, 0, H);
+                grad.addColorStop(0, '#3b82f6'); grad.addColorStop(1, '#93c5fd');
+                ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+
+                // Waterfall
+                const wfW = 140;
+                const wfX = W/2 - wfW/2;
+                
+                // Main Body (Gradient for depth)
+                const wfGrad = ctx.createLinearGradient(wfX, 0, wfX + wfW, 0);
+                wfGrad.addColorStop(0, '#7dd3fc'); // Edge
+                wfGrad.addColorStop(0.2, '#e0f2fe'); // Lighter
+                wfGrad.addColorStop(0.5, '#ffffff'); // Center shine
+                wfGrad.addColorStop(0.8, '#e0f2fe');
+                wfGrad.addColorStop(1, '#7dd3fc');
+                ctx.fillStyle = wfGrad; 
+                ctx.fillRect(wfX, 0, wfW, H);
+
+                // Flow Lines (Animated)
+                if (!gameState.waterfallParticles) gameState.waterfallParticles = [];
+                if (gameState.waterfallParticles.length === 0) {
+                    for(let i=0; i<50; i++) {
+                        gameState.waterfallParticles.push({
+                            x: wfX + Math.random() * wfW,
+                            y: Math.random() * H,
+                            h: 10 + Math.random() * 40,
+                            w: 1 + Math.random() * 2,
+                            speed: 3 + Math.random() * 2 // Slower falling speed
+                        });
+                    }
+                }
+
+                ctx.fillStyle = 'rgba(255,255,255, 0.7)'; 
+                gameState.waterfallParticles.forEach(p => {
+                    p.y += p.speed;
+                    if (p.y > H) {
+                        p.y = -p.h;
+                        p.x = wfX + Math.random() * wfW;
+                    }
+                    ctx.fillRect(p.x, p.y, p.w, p.h);
+                });
+
+                // Mist/Splash at bottom
+                const mistGrad = ctx.createRadialGradient(W/2, GROUND_Y, 20, W/2, GROUND_Y, 90);
+                mistGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+                mistGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                ctx.fillStyle = mistGrad;
+                ctx.fillRect(wfX - 20, GROUND_Y - 50, wfW + 40, 60);
+
+                // Statues (Hashirama & Madara)
+                ctx.fillStyle = '#64748b'; // Rock color
+
+                // Left Statue (Hashirama)
+                ctx.beginPath();
+                ctx.moveTo(0, H);
+                ctx.lineTo(0, 20); // High cliff back
+                // Head
+                ctx.lineTo(40, 20);
+                ctx.bezierCurveTo(40, 5, 90, 5, 90, 20); // Smooth hair/head
+                ctx.lineTo(90, 50); // Face
+                // Body/Robes
+                ctx.lineTo(120, 60); // Shoulder
+                ctx.lineTo(120, 150); // Arm
+                ctx.lineTo(160, H); // Base
+                ctx.lineTo(0, H);
+                ctx.fill();
+
+                // Right Statue (Madara)
+                ctx.beginPath();
+                ctx.moveTo(W, H);
+                ctx.lineTo(W, 20);
+                // Head (Spiky Hair)
+                ctx.lineTo(W-40, 20);
+                ctx.lineTo(W-45, 5); // Spike
+                ctx.lineTo(W-65, 0); // Top Spike
+                ctx.lineTo(W-85, 5); // Spike
+                ctx.lineTo(W-90, 20);
+                ctx.lineTo(W-90, 50); // Face
+                // Body/Robes
+                ctx.lineTo(W-120, 60); // Shoulder
+                ctx.lineTo(W-120, 150); // Arm
+                ctx.lineTo(W-160, H); // Base
+                ctx.lineTo(W, H);
+                ctx.fill();
+                
+                // Details/Shadows on statues
+                ctx.fillStyle = '#475569';
+                // Left eyes/mouth lines
+                ctx.fillRect(80, 35, 5, 2);
+                // Right eyes/mouth lines
+                ctx.fillRect(W-85, 35, 5, 2);
+
+                // Water Surface
+                ctx.fillStyle = '#0ea5e9'; ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
+                
+            } else {
+                // Forest of Death - Realistic
+                
+                // 1. Sky (Dark & Ominous)
+                const skyGrad = ctx.createLinearGradient(0, 0, 0, H);
+                skyGrad.addColorStop(0, '#0f172a'); // Slate 900
+                skyGrad.addColorStop(1, '#312e81'); // Indigo 900
+                ctx.fillStyle = skyGrad;
+                ctx.fillRect(0, 0, W, H);
+
+                // 2. Far Background Trees (Dense Forest)
+                ctx.fillStyle = '#1e1b4b'; // Very dark indigo
+                for(let i=0; i<20; i++) {
+                    const h = 100 + Math.random() * 100;
+                    const w = 40 + Math.random() * 30;
+                    const x = Math.random() * W;
+                    ctx.fillRect(x, GROUND_Y - h, w, h);
+                    // Triangle tops
+                    ctx.beginPath();
+                    ctx.moveTo(x, GROUND_Y - h);
+                    ctx.lineTo(x + w/2, GROUND_Y - h - 30);
+                    ctx.lineTo(x + w, GROUND_Y - h);
+                    ctx.fill();
+                }
+
+                // 3. Mid-ground Giant Trunks
+                for(let i=0; i<6; i++) {
+                    const x = i * 180 + 30;
+                    const w = 80;
+                    const trunkGrad = ctx.createLinearGradient(x, 0, x+w, 0);
+                    trunkGrad.addColorStop(0, '#27272a');
+                    trunkGrad.addColorStop(0.5, '#52525b');
+                    trunkGrad.addColorStop(1, '#27272a');
+                    ctx.fillStyle = trunkGrad;
+                    ctx.fillRect(x, 0, w, GROUND_Y);
+                    
+                    // Bark details
+                    ctx.strokeStyle = '#18181b';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    for(let j=0; j<GROUND_Y; j+=30) {
+                        ctx.moveTo(x + 10, j);
+                        ctx.quadraticCurveTo(x + w/2, j+15, x + w - 10, j);
+                    }
+                    ctx.stroke();
+                }
+
+                // 4. Ground
+                const groundGrad = ctx.createLinearGradient(0, GROUND_Y, 0, H);
+                groundGrad.addColorStop(0, '#14532d'); // Green 900
+                groundGrad.addColorStop(1, '#052e16'); // Green 950
+                ctx.fillStyle = groundGrad;
+                ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
+
+                // 5. Fence (Chain Link)
+                ctx.strokeStyle = 'rgba(161, 161, 170, 0.5)'; // Zinc 400 transparent
+                ctx.lineWidth = 1;
+                const fenceH = 40; // Reduced height by half (was 80)
+                const fenceY = GROUND_Y - fenceH;
+                
+                // Mesh
+                ctx.beginPath();
+                for(let x=-20; x<W; x+=20) {
+                    ctx.moveTo(x, fenceY);
+                    ctx.lineTo(x+20, GROUND_Y);
+                    ctx.moveTo(x+20, fenceY);
+                    ctx.lineTo(x, GROUND_Y);
+                }
+                ctx.stroke();
+                
+                // Rails & Posts
+                ctx.strokeStyle = '#71717a';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(0, fenceY); ctx.lineTo(W, fenceY); // Top rail
+                ctx.moveTo(0, GROUND_Y); ctx.lineTo(W, GROUND_Y); // Bottom rail
+                ctx.stroke();
+                
+                // Posts
+                ctx.fillStyle = '#52525b';
+                for(let x=0; x<=W; x+=150) {
+                    ctx.fillRect(x-4, fenceY, 8, fenceH);
+                    ctx.fillStyle = '#3f3f46'; // Post cap
+                    ctx.beginPath(); ctx.arc(x, fenceY, 5, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = '#52525b'; // Reset
+                }
+                
+                // 6. Warning Sign
+                ctx.fillStyle = '#fef08a'; // Yellow
+                ctx.fillRect(W/2 - 40, fenceY + 5, 80, 25); // Adjusted position
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 10px Arial';
+                ctx.textAlign = 'center'; // Center text
+                ctx.fillText('HIGH VOLTAGE', W/2, fenceY + 20); // Centered text coordinates
+            }
+        }
+
         function drawCanvasContent() {
-            ctx.clearRect(0, 0, W, H);
-            ctx.fillStyle = '#b8860b'; ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
+            drawBackground();
 
             drawCharacter(gameState.playerA, ctx);
             drawCharacter(gameState.playerB, ctx);
@@ -947,6 +1159,7 @@
             gameState.isAnimating = false;
             gameState.effects = [];
             gameState.floatingTexts = [];
+            gameState.waterfallParticles = [];
             gameState.message = `FIGHT! ${gameState.playerA.name} vs ${gameState.playerB.name}`;
             const restartBtn = document.getElementById('btnRestart');
             if (restartBtn) restartBtn.remove();
