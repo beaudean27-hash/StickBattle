@@ -191,6 +191,13 @@
                     <div id="p1-indicator-Itachi" class="p1-indicator absolute top-0 left-0 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-br shadow-md hidden">P1</div>
                     <div id="p2-indicator-Itachi" class="p2-indicator absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-bl shadow-md hidden">P2</div>
                 </div>
+                <!-- Madara -->
+                <div onclick="selectChar('Madara')" class="relative cursor-pointer w-24 h-24 bg-red-800 hover:bg-red-700 border-2 border-gray-700 hover:border-red-500 rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
+                    <span class="text-4xl mb-1">⚔️</span>
+                    <span class="text-xs font-bold uppercase text-white">Madara</span>
+                    <div id="p1-indicator-Madara" class="p1-indicator absolute top-0 left-0 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-br shadow-md hidden">P1</div>
+                    <div id="p2-indicator-Madara" class="p2-indicator absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-bl shadow-md hidden">P2</div>
+                </div>
                 <!-- Random -->
                 <div onclick="selectRandomChar()" class="relative cursor-pointer w-24 h-24 bg-purple-900 hover:bg-purple-800 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
                     <span class="text-4xl mb-1">?</span>
@@ -225,9 +232,14 @@
             <button onclick="startGame('PVP')" class="btn-action bg-red-600 text-white text-2xl hover:bg-red-700 min-w-[200px] font-bold shadow-lg transform hover:-translate-y-1 transition-transform">
                 START PvP
             </button>
-            <button onclick="startBossSelection()" class="btn-action bg-purple-800 text-white text-2xl hover:bg-purple-900 min-w-[200px] font-bold shadow-lg transform hover:-translate-y-1 transition-transform border-2 border-purple-500">
-                BOSS BATTLE
-            </button>
+            <div class="flex flex-col space-y-2">
+                <button onclick="startBossSelection('Nine Tails')" class="btn-action bg-purple-800 text-white text-xl hover:bg-purple-900 min-w-[200px] font-bold shadow-lg transform hover:-translate-y-1 transition-transform border-2 border-purple-500">
+                    VS NINE TAILS
+                </button>
+                <button onclick="startBossSelection('Ten Tails')" class="btn-action bg-gray-800 text-white text-xl hover:bg-gray-900 min-w-[200px] font-bold shadow-lg transform hover:-translate-y-1 transition-transform border-2 border-gray-500">
+                    VS TEN TAILS
+                </button>
+            </div>
         </div>
         
         <!-- Team Selection Display (Hidden by default) -->
@@ -237,6 +249,11 @@
     </div>
 
     <h1 class="text-4xl text-center mb-6 text-yellow-400">STICK HOKAGE: BATTLE ARENA</h1>
+
+    <!-- Team Status Display (Boss Mode) -->
+    <div id="battle-team-display" class="flex justify-center space-x-2 mb-4 hidden">
+        <!-- Filled by JS -->
+    </div>
 
     <div class="flex justify-between items-start mb-4 text-white">
         <div id="player-a-stats" class="w-2/5 p-3 bg-gray-700 rounded-lg shadow-inner">
@@ -334,16 +351,33 @@
             'Twin Lion Fists': { cost: 100, damage: 100, ninjutsuMsg: "strikes with TWIN LION FISTS!" },
             'Fireball': { cost: 40, damage: 55, ninjutsuMsg: "blows a massive FIREBALL!" },
             'Tsukuyomi': { cost: 100, damage: 120, ninjutsuMsg: "traps the enemy in TSUKUYOMI!" },
+            'Majestic Destroyer Flame': { cost: 40, damage: 60, ninjutsuMsg: "unleashes MAJESTIC DESTROYER FLAME!" },
+            'Perfect Susanoo': { cost: 100, damage: 120, ninjutsuMsg: "summons PERFECT SUSANOO!" },
+            'Meteor Drop': { cost: 100, damage: 150, selfDamage: 30, ninjutsuMsg: "summons a METEOR!" },
+            // 3rd Form Moves
+            'Six Paths Rasenshuriken': { cost: 100, damage: 150, ninjutsuMsg: "throws a SIX PATHS RASENSHURIKEN!" },
+            'Indra\'s Arrow': { cost: 100, damage: 150, ninjutsuMsg: "fires INDRA'S ARROW!" },
+            'Night Guy': { cost: 100, damage: 160, selfDamage: 50, ninjutsuMsg: "unleashes NIGHT GUY!" },
+            'Gold Sand Tsunami': { cost: 100, damage: 140, ninjutsuMsg: "crushes with GOLD SAND TSUNAMI!" },
+            'Katsuyu Acid': { cost: 100, damage: 130, heal: 50, ninjutsuMsg: "spits KATSUYU ACID!" },
+            'Kamui Shuriken': { cost: 100, damage: 150, ninjutsuMsg: "throws KAMUI SHURIKEN!" },
+            'Silver Wheel': { cost: 100, damage: 140, ninjutsuMsg: "strikes with SILVER WHEEL REINCARNATION!" },
+            'Yasaka Magatama': { cost: 100, damage: 140, ninjutsuMsg: "throws YASAKA MAGATAMA!" },
             // Boss Moves
             'Nine Tails Whip': { cost: 0, damage: 30, msg: "smashes with its TAILS!" },
             'Slash': { cost: 0, damage: 25, msg: "slashes with GIANT CLAWS!" },
-            'Giant Beast Bomb': { cost: 50, damage: 80, ninjutsuMsg: "fires a MASSIVE BEAST BOMB!" }
+            'Giant Beast Bomb': { cost: 50, damage: 80, ninjutsuMsg: "fires a MASSIVE BEAST BOMB!" },
+            // Ten Tails Moves
+            'Ten Tails Swipe': { cost: 0, damage: 40, msg: "swipes with its GIANT HAND!" },
+            'Cataclysm': { cost: 0, damage: 50, msg: "causes a CATACLYSM!" },
+            'God Tree Beam': { cost: 50, damage: 120, ninjutsuMsg: "fires a GOD TREE BEAM!" }
         };
 
         // --- Menu Logic ---
         let selectionMode = 1;
         let isBossModeSelection = false;
         let teamSelection = [];
+        let selectedBoss = 'Nine Tails';
 
         window.setSelectionMode = function(mode) {
             selectionMode = mode;
@@ -352,7 +386,8 @@
             updateSelectionUI();
         };
 
-        window.startBossSelection = function() {
+        window.startBossSelection = function(bossName) {
+            selectedBoss = bossName || 'Nine Tails';
             isBossModeSelection = true;
             teamSelection = [];
             document.getElementById('team-display').classList.remove('hidden');
@@ -361,7 +396,7 @@
         };
 
         window.selectRandomChar = function() {
-            const chars = ['Naruto', 'Sasuke', 'Rock Lee', 'Gaara', 'Sakura', 'Kakashi', 'Hinata', 'Itachi'];
+            const chars = ['Naruto', 'Sasuke', 'Rock Lee', 'Gaara', 'Sakura', 'Kakashi', 'Hinata', 'Itachi', 'Madara'];
             const randomChar = chars[Math.floor(Math.random() * chars.length)];
             selectChar(randomChar);
         };
@@ -369,7 +404,10 @@
         window.selectChar = function(charName) {
             if (isBossModeSelection) {
                 if (teamSelection.includes(charName)) return;
-                if (teamSelection.length < 5) {
+                
+                const maxTeamSize = selectedBoss === 'Nine Tails' ? 2 : 5;
+
+                if (teamSelection.length < maxTeamSize) {
                     teamSelection.push(charName);
                     
                     // Update Team Display
@@ -377,11 +415,11 @@
                     const slot = document.createElement('div');
                     slot.className = "w-12 h-12 bg-gray-700 border border-gray-500 rounded flex items-center justify-center text-xl";
                     // Simple icon mapping
-                    const icons = {'Naruto':'🦊','Sasuke':'⚡','Rock Lee':'👊','Gaara':'🏺','Sakura':'🌸','Kakashi':'⚡','Hinata':'👁️','Itachi':'🌑'};
+                    const icons = {'Naruto':'🦊','Sasuke':'⚡','Rock Lee':'👊','Gaara':'🏺','Sakura':'🌸','Kakashi':'⚡','Hinata':'👁️','Itachi':'🌑','Madara':'⚔️'};
                     slot.textContent = icons[charName];
                     teamDisplay.appendChild(slot);
 
-                    if (teamSelection.length === 5) {
+                    if (teamSelection.length === maxTeamSize) {
                         setTimeout(() => startGame('BOSS'), 500);
                     } else {
                         updateSelectionUI();
@@ -400,7 +438,8 @@
 
         function updateSelectionUI() {
             if (isBossModeSelection) {
-                document.getElementById('selecting-player').textContent = `TEAM MEMBER ${teamSelection.length + 1}/5`;
+                const maxTeamSize = selectedBoss === 'Nine Tails' ? 2 : 5;
+                document.getElementById('selecting-player').textContent = `TEAM MEMBER ${teamSelection.length + 1}/${maxTeamSize}`;
                 document.getElementById('selecting-player').className = "font-bold text-purple-400 animate-pulse";
                 return;
             }
@@ -418,7 +457,8 @@
                 'Sakura': { color: 'bg-pink-600', icon: '🌸' },
                 'Kakashi': { color: 'bg-gray-600', icon: '⚡' },
                 'Hinata': { color: 'bg-purple-400', icon: '👁️' },
-                'Itachi': { color: 'bg-black', icon: '🌑' }
+                'Itachi': { color: 'bg-black', icon: '🌑' },
+                'Madara': { color: 'bg-red-800', icon: '⚔️' }
             };
             
             // Update P1 Portrait
@@ -482,7 +522,11 @@
                 }));
                 gameState.teamIndex = 0;
                 gameState.playerA = gameState.teamA[0];
-                gameState.playerB = { hp: 1000, maxHp: 1000, chakra: 1000, maxChakra: 1000, x: W * 0.7, y: GROUND_Y, color: '#f97316', name: 'Nine Tails', pose: 'idle' };
+                
+                let bossHp = 1000;
+                if (selectedBoss === 'Ten Tails') bossHp = 2000;
+                
+                gameState.playerB = { hp: bossHp, maxHp: bossHp, chakra: 1000, maxChakra: 1000, x: W * 0.7, y: GROUND_Y, color: '#f97316', name: selectedBoss, pose: 'idle' };
             } else {
                 gameState.playerA.name = p1Selection;
                 gameState.playerB.name = p2Selection;
@@ -606,9 +650,41 @@
             ctx.scale(scale, scale);
 
             // Colors
-            const furColor = '#f97316'; // Orange-500
-            const darkFur = '#c2410c'; // Orange-700
+            const furColor = '#ea580c'; // Darker Orange
+            const darkFur = '#9a3412'; // Deep Red-Orange
             const eyeColor = '#ef4444'; // Red
+            const glowColor = 'rgba(239, 68, 68, 0.5)';
+
+            // Aura
+            ctx.shadowColor = '#f97316';
+            ctx.shadowBlur = 15;
+
+            // --- Tails (9 of them! - Drawn FIRST to be behind body) ---
+            ctx.strokeStyle = furColor;
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+            ctx.shadowColor = '#c2410c';
+            ctx.shadowBlur = 5;
+            
+            for(let i=0; i<9; i++) {
+                ctx.beginPath();
+                const angle = (i * 0.2) - 0.8;
+                const tailX = 20;
+                const tailY = -15;
+                
+                // Waving animation
+                const wave = Math.sin(Date.now() / 300 + i) * 8;
+                const wave2 = Math.cos(Date.now() / 250 + i) * 5;
+                
+                ctx.moveTo(tailX, tailY);
+                ctx.bezierCurveTo(
+                    tailX + 20, tailY - 30 + (i*4), 
+                    tailX + 40 + wave, tailY - 40 + (i*6) + wave2, 
+                    tailX + 60 + wave, tailY - 20 + (i*8) + wave
+                );
+                ctx.stroke();
+            }
+            ctx.shadowBlur = 0;
 
             // Body (Crouched Fox)
             ctx.fillStyle = furColor;
@@ -619,46 +695,43 @@
             // Head
             ctx.save();
             ctx.translate(-20, -25);
-            // Ears
+            
+            // Ears (Longer, sharper)
             ctx.beginPath();
-            ctx.moveTo(0, 0); ctx.lineTo(5, -15); ctx.lineTo(10, 0);
-            ctx.moveTo(15, 0); ctx.lineTo(20, -15); ctx.lineTo(25, 0);
+            ctx.moveTo(0, 0); ctx.lineTo(2, -20); ctx.lineTo(10, 0);
+            ctx.moveTo(15, 0); ctx.lineTo(23, -20); ctx.lineTo(25, 0);
             ctx.fill();
+            
             // Snout
             ctx.beginPath();
             ctx.ellipse(12, 5, 15, 12, 0, 0, Math.PI * 2);
             ctx.fill();
-            // Eyes
-            ctx.fillStyle = eyeColor;
+            
+            // Black markings around eyes
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.ellipse(8, 2, 4, 6, -0.2, 0, Math.PI*2);
+            ctx.ellipse(17, 2, 4, 6, 0.2, 0, Math.PI*2);
+            ctx.fill();
+
+            // Eyes (Glowing)
+            ctx.shadowColor = '#ef4444';
+            ctx.shadowBlur = 10;
+            ctx.fillStyle = '#fff'; // White center
             ctx.beginPath();
             ctx.moveTo(5, 0); ctx.lineTo(10, 2); ctx.lineTo(5, 4); // Left Eye
             ctx.moveTo(15, 0); ctx.lineTo(20, 2); ctx.lineTo(15, 4); // Right Eye
             ctx.fill();
-            // Teeth
+            ctx.shadowBlur = 0; // Reset
+
+            // Teeth (Sharp)
             ctx.fillStyle = '#fff';
             ctx.beginPath();
-            ctx.moveTo(8, 10); ctx.lineTo(10, 14); ctx.lineTo(12, 10);
-            ctx.moveTo(14, 10); ctx.lineTo(16, 14); ctx.lineTo(18, 10);
+            ctx.moveTo(8, 10); ctx.lineTo(9, 15); ctx.lineTo(11, 10);
+            ctx.moveTo(11, 10); ctx.lineTo(12, 15); ctx.lineTo(13, 10);
+            ctx.moveTo(14, 10); ctx.lineTo(15, 15); ctx.lineTo(16, 10);
             ctx.fill();
             ctx.restore();
-
-            // Tails (9 of them!)
-            ctx.strokeStyle = furColor;
-            ctx.lineWidth = 4;
-            ctx.lineCap = 'round';
-            for(let i=0; i<9; i++) {
-                ctx.beginPath();
-                const angle = (i * 0.2) - 0.8;
-                const tailX = 20;
-                const tailY = -15;
-                
-                // Waving animation
-                const wave = Math.sin(Date.now() / 200 + i) * 5;
-                
-                ctx.moveTo(tailX, tailY);
-                ctx.quadraticCurveTo(tailX + 30, tailY - 20 + (i*5) + wave, tailX + 50, tailY - 10 + (i*5) + wave);
-                ctx.stroke();
-            }
 
             // Legs
             ctx.fillStyle = darkFur;
@@ -666,8 +739,100 @@
             ctx.beginPath(); ctx.moveTo(-10, -5); ctx.lineTo(-15, 10); ctx.lineTo(-5, 10); ctx.fill();
             // Front Right
             ctx.beginPath(); ctx.moveTo(5, -5); ctx.lineTo(0, 10); ctx.lineTo(10, 10); ctx.fill();
-            // Back Leg
-            ctx.beginPath(); ctx.arc(15, -5, 10, 0, Math.PI); ctx.fill();
+            // Back Leg (Haunch)
+            ctx.beginPath(); ctx.arc(15, -5, 12, 0, Math.PI); ctx.fill();
+            // Back Foot
+            ctx.beginPath(); ctx.moveTo(15, 5); ctx.lineTo(10, 10); ctx.lineTo(20, 10); ctx.fill();
+
+            ctx.restore();
+        }
+
+        function drawTenTails(ctx, x, y, direction, pose) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(direction, 1);
+
+            const scale = 4.0; // Even bigger
+            ctx.scale(scale, scale);
+
+            // Colors
+            const skinColor = '#d4d4d8'; // Greyish/Wood color
+            const eyeColor = '#ef4444'; // Red Rinne-Sharingan
+
+            // Aura
+            ctx.shadowColor = '#7f1d1d';
+            ctx.shadowBlur = 20;
+
+            // --- Tails (10 of them! - Drawn FIRST to be behind body) ---
+            ctx.strokeStyle = skinColor;
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            
+            for(let i=0; i<10; i++) {
+                ctx.beginPath();
+                const angle = (i * 0.15) - 0.75;
+                const tailX = 10;
+                const tailY = -20;
+                
+                // Waving animation
+                const wave = Math.sin(Date.now() / 400 + i) * 5;
+                
+                ctx.moveTo(tailX, tailY);
+                // Hand-like tails
+                ctx.bezierCurveTo(
+                    tailX + 30, tailY - 40 + (i*5), 
+                    tailX + 50 + wave, tailY - 60 + (i*8), 
+                    tailX + 70 + wave, tailY - 30 + (i*10) + wave
+                );
+                ctx.stroke();
+                
+                // "Hand" at end of tail
+                ctx.fillStyle = skinColor;
+                ctx.beginPath();
+                ctx.arc(tailX + 70 + wave, tailY - 30 + (i*10) + wave, 4, 0, Math.PI*2);
+                ctx.fill();
+            }
+
+            // Body (Bulbous/Hunchback)
+            ctx.fillStyle = skinColor;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.bezierCurveTo(-20, -40, 20, -40, 0, 0); // Main body shape
+            ctx.ellipse(0, -20, 30, 25, 0, 0, Math.PI*2);
+            ctx.fill();
+
+            // Head (Single Eye)
+            ctx.save();
+            ctx.translate(0, -35);
+            
+            // Eye (Rinnegan/Sharingan)
+            ctx.fillStyle = eyeColor;
+            ctx.beginPath();
+            ctx.arc(0, 0, 8, 0, Math.PI*2);
+            ctx.fill();
+            
+            // Rings (Rinnegan)
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 0.5;
+            ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI*2); ctx.stroke();
+            ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI*2); ctx.stroke();
+            ctx.beginPath(); ctx.arc(0, 0, 2, 0, Math.PI*2); ctx.stroke();
+            
+            // Tomoe (Sharingan)
+            ctx.fillStyle = '#000';
+            for(let i=0; i<9; i++) {
+                const angle = (i / 9) * Math.PI * 2;
+                ctx.beginPath();
+                ctx.arc(Math.cos(angle)*5, Math.sin(angle)*5, 1, 0, Math.PI*2);
+                ctx.fill();
+            }
+            
+            ctx.restore();
+
+            // Legs (Stumpy)
+            ctx.fillStyle = skinColor;
+            ctx.beginPath(); ctx.moveTo(-15, -5); ctx.lineTo(-20, 10); ctx.lineTo(-10, 10); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(15, -5); ctx.lineTo(10, 10); ctx.lineTo(20, 10); ctx.fill();
 
             ctx.restore();
         }
@@ -681,6 +846,15 @@
                 ctx.font = '20px "Jockey One"'; 
                 ctx.textAlign = 'center';
                 ctx.fillText("NINE TAILS (BOSS)", player.x, player.y + 20);
+                return;
+            }
+            if (player.name === 'Ten Tails') {
+                drawTenTails(ctx, player.x, player.y, player === gameState.playerA ? 1 : -1, player.pose);
+                // Draw Name/HP for Boss
+                ctx.fillStyle = 'white'; 
+                ctx.font = '20px "Jockey One"'; 
+                ctx.textAlign = 'center';
+                ctx.fillText("TEN TAILS (GOD)", player.x, player.y + 20);
                 return;
             }
 
@@ -710,6 +884,18 @@
 
             ctx.save();
             ctx.translate(drawX, drawY);
+            
+            // --- REALISTIC SHADOW ---
+            if (!isDefeated) {
+                ctx.save();
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.beginPath();
+                ctx.ellipse(0, 0, 14, 4, 0, 0, Math.PI * 2);
+                ctx.filter = 'blur(2px)';
+                ctx.fill();
+                ctx.restore();
+            }
+
             ctx.rotate(angle);
 
             // Center coordinate system at feet: (0, 0)
@@ -723,17 +909,25 @@
             if (player.name === 'Gaara') skinColor = '#fef3c7'; // Pale
             if (player.name === 'Sakura' && player.is100Healings) skinColor = '#fbcfe8'; // Glowing pinkish skin
 
+            // 3rd Form Skin Colors
+            if (player.name === 'Naruto' && player.isSixPaths) skinColor = '#fde047'; // Yellow glowing
+            if (player.name === 'Rock Lee' && player.isNightGuy) skinColor = '#7f1d1d'; // Dark Burnt Red
+            if (player.name === 'Itachi' && player.isEdoTensei) skinColor = '#9ca3af'; // Grey/Cracked
+
             // --- Susanoo Avatar (Background) ---
-            if (player.name === 'Itachi' && player.isSusanoo) {
+            if ((player.name === 'Itachi' || player.name === 'Madara') && player.isSusanoo) {
                 ctx.save();
                 ctx.translate(0, -40); // Center around torso
-                const sScale = 1.5;
+                const sScale = player.name === 'Madara' ? 2.0 : 1.5; // Madara's is bigger
                 ctx.scale(sScale * direction, sScale); // Scale up and face direction
                 
                 // Glow
-                ctx.shadowColor = '#ef4444';
+                const susanooColor = player.name === 'Madara' ? '#3b82f6' : '#f97316'; // Blue vs Orange
+                const glowColor = player.name === 'Madara' ? '#60a5fa' : '#ef4444';
+
+                ctx.shadowColor = glowColor;
                 ctx.shadowBlur = 20;
-                ctx.strokeStyle = '#f97316'; // Orange-Red
+                ctx.strokeStyle = susanooColor;
                 ctx.lineWidth = 3;
                 ctx.lineCap = 'round';
                 
@@ -757,7 +951,7 @@
                 ctx.stroke();
                 
                 // Head/Skull
-                ctx.fillStyle = 'rgba(249, 115, 22, 0.5)';
+                ctx.fillStyle = player.name === 'Madara' ? 'rgba(59, 130, 246, 0.5)' : 'rgba(249, 115, 22, 0.5)';
                 ctx.beginPath();
                 ctx.moveTo(-15, -20);
                 ctx.lineTo(-20, -50); // Horn
@@ -774,7 +968,7 @@
                 ctx.beginPath(); ctx.arc(-8, -35, 3, 0, Math.PI*2); ctx.fill();
                 
                 // Arm (Holding Totsuka Blade - simplified)
-                ctx.strokeStyle = '#f97316';
+                ctx.strokeStyle = susanooColor;
                 ctx.beginPath();
                 ctx.moveTo(20, 0);
                 ctx.lineTo(50, 20); // Arm
@@ -782,7 +976,7 @@
                 ctx.stroke();
                 
                 // Blade (Spectral)
-                ctx.fillStyle = 'rgba(239, 68, 68, 0.6)';
+                ctx.fillStyle = player.name === 'Madara' ? 'rgba(96, 165, 250, 0.6)' : 'rgba(239, 68, 68, 0.6)';
                 ctx.beginPath();
                 ctx.moveTo(80, -10);
                 ctx.lineTo(120, -50);
@@ -797,6 +991,57 @@
             if (player.name === 'Sasuke' && player.isCurseMark) {
                 // Draw wings behind body
                 drawWings(0, -45, direction); 
+            }
+
+            // --- Six Paths Orbs (Background) ---
+            if (player.name === 'Naruto' && player.isSixPaths) {
+                ctx.fillStyle = '#000';
+                for(let i=0; i<6; i++) {
+                    const angle = (Date.now() / 1000) + (i * Math.PI / 3);
+                    const ox = Math.cos(angle) * 60;
+                    const oy = Math.sin(angle) * 60 - 40;
+                    ctx.beginPath(); ctx.arc(ox, oy, 8, 0, Math.PI*2); ctx.fill();
+                }
+            }
+
+            // --- DMS Susanoo Aura (Background) ---
+            if (player.name === 'Kakashi' && player.isDMS) {
+                ctx.save();
+                ctx.shadowColor = '#3b82f6'; ctx.shadowBlur = 30;
+                ctx.strokeStyle = 'rgba(59, 130, 246, 0.5)';
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+                ctx.moveTo(0, -100);
+                ctx.lineTo(-40, 0);
+                ctx.lineTo(40, 0);
+                ctx.closePath();
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // --- Night Guy Aura (Background) ---
+            if (player.name === 'Rock Lee' && player.isNightGuy) {
+                ctx.save();
+                ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 40;
+                ctx.fillStyle = 'rgba(185, 28, 28, 0.3)';
+                ctx.beginPath();
+                ctx.moveTo(0, -20);
+                ctx.lineTo(-30, -80); // Dragon shape rough
+                ctx.lineTo(30, -60);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // --- Gold Sand (Background) ---
+            if (player.name === 'Gaara' && player.isGoldenSand) {
+                ctx.save();
+                ctx.fillStyle = '#fcd34d'; // Gold
+                for(let i=0; i<10; i++) {
+                    const gx = (Math.random() - 0.5) * 80;
+                    const gy = (Math.random() - 0.5) * 80 - 40;
+                    ctx.beginPath(); ctx.arc(gx, gy, 4, 0, Math.PI*2); ctx.fill();
+                }
+                ctx.restore();
             }
 
             // --- Gaara Gourd (Background) ---
@@ -821,6 +1066,14 @@
                 // Rope
                 ctx.fillStyle = '#b91c1c';
                 ctx.fillRect(-5, -15, 10, 4);
+                
+                // Sand Texture
+                ctx.fillStyle = '#a8a29e';
+                for(let i=0; i<5; i++) {
+                    ctx.beginPath();
+                    ctx.arc((Math.random()-0.5)*20, (Math.random()-0.5)*40, 1, 0, Math.PI*2);
+                    ctx.fill();
+                }
                 
                 ctx.restore();
             }
@@ -873,13 +1126,14 @@
             // Leg Colors
             let legColor = '#e5e7eb'; // Default
             if (player.name === 'Naruto') legColor = '#f97316'; // Orange pants
-            else if (player.name === 'Sasuke') legColor = '#e5e7eb'; // White shorts
+            else if (player.name === 'Sasuke') legColor = '#1f2937'; // Dark Blue/Black pants (Shippuden)
             else if (player.name === 'Rock Lee') legColor = '#16a34a'; // Green jumpsuit
             else if (player.name === 'Gaara') legColor = '#7f1d1d'; // Dark Red pants
             else if (player.name === 'Sakura') legColor = '#374151'; // Grey skirt/shorts
             else if (player.name === 'Kakashi') legColor = '#1f2937'; // Dark Blue/Black pants
             else if (player.name === 'Hinata') legColor = '#1f2937'; // Dark pants
             else if (player.name === 'Itachi') legColor = '#1f2937'; // Dark pants
+            else if (player.name === 'Madara') legColor = '#1f2937'; // Dark pants
 
             ctx.fillStyle = legColor;
             ctx.strokeStyle = '#1f2937';
@@ -906,6 +1160,10 @@
                  ctx.fillRect(-limbW/2, 0, limbW, limbL); // Lower leg
                  ctx.fillStyle = '#16a34a';
                  ctx.fillRect(-limbW/2, -5, limbW, 10); // Upper leg part
+            } else if (player.name === 'Sasuke') {
+                // Dark pants, maybe apron flap
+                ctx.fillStyle = '#1f2937';
+                ctx.fillRect(-limbW/2, 0, limbW, limbL);
             } else {
                 ctx.fillRect(-limbW/2, 0, limbW, limbL);
             }
@@ -935,13 +1193,14 @@
 
             // --- Body/Torso ---
             let bodyColor = '#f97316';
-            if (player.name === 'Sasuke') bodyColor = '#1e3a8a'; // Blue
+            if (player.name === 'Sasuke') bodyColor = '#e5e7eb'; // White Shirt (Shippuden)
             if (player.name === 'Rock Lee') bodyColor = '#16a34a'; // Green
             if (player.name === 'Gaara') bodyColor = '#7f1d1d'; // Dark Red
             if (player.name === 'Sakura') bodyColor = '#be123c'; // Red/Pink top
             if (player.name === 'Kakashi') bodyColor = '#1f2937'; // Dark Blue shirt under vest
             if (player.name === 'Hinata') bodyColor = '#e9d5ff'; // Lavender/Cream hoodie
             if (player.name === 'Itachi') bodyColor = '#000000'; // Akatsuki Cloak
+            if (player.name === 'Madara') bodyColor = '#7f1d1d'; // Red Armor
 
             ctx.fillStyle = bodyColor;
             // Torso Rect
@@ -949,12 +1208,32 @@
             
             // Vest / Details
             if (player.name === 'Naruto') {
-                // Blue shoulders
-                ctx.fillStyle = '#1e3a8a';
-                ctx.fillRect(-bodyW/2, -bodyH - limbL, bodyW, 8);
+                // Black shoulders/top
+                ctx.fillStyle = '#000';
+                ctx.fillRect(-bodyW/2, -bodyH - limbL, bodyW, 10);
+                // Zipper
+                ctx.fillStyle = '#000';
+                ctx.fillRect(-1, -bodyH - limbL, 2, bodyH);
                 // Spiral crest (simplified)
                 ctx.fillStyle = '#ef4444';
                 ctx.beginPath(); ctx.arc(0, -bodyH - limbL + 14, 4, 0, Math.PI*2); ctx.fill();
+                // Mesh under shirt (neck)
+                ctx.fillStyle = '#374151';
+                ctx.beginPath(); ctx.moveTo(-4, -bodyH - limbL); ctx.lineTo(4, -bodyH - limbL); ctx.lineTo(0, -bodyH - limbL + 4); ctx.fill();
+            }
+            else if (player.name === 'Sasuke') {
+                // Open chest
+                ctx.fillStyle = skinColor;
+                ctx.beginPath();
+                ctx.moveTo(-2, -bodyH - limbL);
+                ctx.lineTo(2, -bodyH - limbL);
+                ctx.lineTo(0, -bodyH - limbL + 10);
+                ctx.fill();
+                // Purple Rope Belt
+                ctx.fillStyle = '#a855f7';
+                ctx.fillRect(-bodyW/2 - 2, -limbL - 6, bodyW + 4, 6);
+                // Knot
+                ctx.beginPath(); ctx.arc(4 * direction, -limbL - 3, 4, 0, Math.PI*2); ctx.fill();
             }
             else if (player.name === 'Rock Lee') {
                  // Red Belt
@@ -962,6 +1241,9 @@
                  ctx.fillRect(-bodyW/2, -limbL - 4, bodyW, 4);
             }
             else if (player.name === 'Gaara') {
+                // Long Coat
+                ctx.fillStyle = '#7f1d1d';
+                ctx.fillRect(-bodyW/2 - 1, -bodyH - limbL, bodyW + 2, bodyH + 5); // Longer
                 // Sash
                 ctx.fillStyle = '#d1d5db'; // Grey sash
                 ctx.beginPath();
@@ -997,12 +1279,12 @@
                 ctx.fillRect(-bodyW/2, -bodyH - limbL - 4, bodyW, 4);
             }
             else if (player.name === 'Hinata') {
-                // Hoodie details
-                ctx.fillStyle = '#d8b4fe'; // Darker lavender
-                ctx.fillRect(-bodyW/2 + 4, -bodyH - limbL, bodyW - 8, bodyH); // Center panel
+                // Hoodie details (Shippuden Jacket)
+                ctx.fillStyle = '#e9d5ff'; // Lavender/Cream
+                ctx.fillRect(-bodyW/2, -bodyH - limbL, bodyW, bodyH); 
                 
                 // Zipper
-                ctx.fillStyle = '#e5e7eb';
+                ctx.fillStyle = '#d8b4fe';
                 ctx.fillRect(-1, -bodyH - limbL, 2, bodyH);
             }
             else if (player.name === 'Itachi') {
@@ -1022,6 +1304,29 @@
                 ctx.lineWidth = 1;
                 ctx.strokeRect(-bodyW/2, -bodyH - limbL - 5, bodyW, 5);
             }
+            else if (player.name === 'Madara') {
+                // Samurai Armor Plates
+                ctx.fillStyle = '#991b1b'; // Darker Red
+                // Chest plate
+                ctx.fillRect(-bodyW/2, -bodyH - limbL, bodyW, 15);
+                // Stomach plates
+                ctx.fillStyle = '#7f1d1d';
+                for(let i=0; i<3; i++) {
+                    ctx.fillRect(-bodyW/2 + 2, -bodyH - limbL + 16 + (i*4), bodyW - 4, 3);
+                }
+                // Shoulder pads (sticking out)
+                ctx.fillStyle = '#991b1b';
+                ctx.beginPath();
+                ctx.moveTo(-bodyW/2, -bodyH - limbL);
+                ctx.lineTo(-bodyW/2 - 8, -bodyH - limbL + 5);
+                ctx.lineTo(-bodyW/2, -bodyH - limbL + 10);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(bodyW/2, -bodyH - limbL);
+                ctx.lineTo(bodyW/2 + 8, -bodyH - limbL + 5);
+                ctx.lineTo(bodyW/2, -bodyH - limbL + 10);
+                ctx.fill();
+            }
 
 
             // --- Head ---
@@ -1036,9 +1341,24 @@
 
             // Face (Eyes) - Simple dots
             ctx.fillStyle = '#000';
+            
+            // Special Eyes
+            if (player.name === 'Sasuke' && player.isRinnegan) {
+                ctx.fillStyle = '#a855f7'; // Purple
+            } else if (player.name === 'Hinata' && player.isTenseigan) {
+                ctx.fillStyle = '#22d3ee'; // Cyan
+                ctx.shadowColor = '#22d3ee'; ctx.shadowBlur = 5;
+            } else if (player.name === 'Itachi' && player.isEdoTensei) {
+                // Black Sclera
+                ctx.fillStyle = '#000';
+                ctx.beginPath(); ctx.arc(4 * direction, -headSize - 1, 3, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#fff'; // White pupil (Edo Tensei usually has dark sclera, light pupil)
+            }
+
             ctx.beginPath();
             ctx.arc(4 * direction, -headSize - 1, 1.5, 0, Math.PI*2); // Front eye
             ctx.fill();
+            ctx.shadowBlur = 0;
             
             // Three-tails form: glowing red eyes
             if (player.name === 'Naruto' && player.isThreeTails) {
@@ -1057,6 +1377,17 @@
                 ctx.fillRect(-headSize - 2, -headSize - 10, headSize*2 + 4, 6);
                 ctx.fillStyle = '#d1d5db'; // Metal plate
                 ctx.fillRect(-6, -headSize - 9, 12, 4);
+                
+                // Ties (Naruto)
+                if (player.name === 'Naruto') {
+                    ctx.fillStyle = '#1f2937';
+                    ctx.beginPath();
+                    ctx.moveTo(-headSize, -headSize - 5);
+                    ctx.quadraticCurveTo(-headSize - 10, -headSize, -headSize - 15, -headSize + 5);
+                    ctx.lineTo(-headSize - 12, -headSize + 5);
+                    ctx.quadraticCurveTo(-headSize - 8, -headSize, -headSize, -headSize - 8);
+                    ctx.fill();
+                }
             } else if (player.name === 'Kakashi') {
                 // Headband angled over left eye
                 ctx.fillStyle = '#1f2937'; // Navy band
@@ -1112,15 +1443,41 @@
             } 
             else if (player.name === 'Sasuke') {
                 ctx.fillStyle = player.isCurseMark ? '#374151' : '#111827'; // Greyish blue or Black
+                
                 ctx.beginPath();
-                // Duckbutt spikes back
-                ctx.moveTo(-headSize, -headSize);
-                ctx.lineTo(-headSize - 8, -headSize - 5);
-                ctx.lineTo(-headSize - 2, -headSize - 15);
-                ctx.lineTo(0, -headSize - 5);
-                // Bangs
-                ctx.lineTo(headSize + 2, -headSize + 5);
-                ctx.lineTo(headSize, -headSize - 5);
+                // Design for facing RIGHT (direction = 1)
+                // Multiply all X by direction to flip correctly
+                
+                // Start Top Center
+                ctx.moveTo(2 * direction, -headSize - 18);
+                
+                // --- Front Bangs (Face Side) ---
+                // Forehead
+                ctx.lineTo(10 * direction, -headSize - 10);
+                // Main Long Bang (Frames face)
+                ctx.lineTo(15 * direction, -headSize + 8); 
+                // Cheek/Sideburn area
+                ctx.lineTo(12 * direction, -headSize - 2);
+                ctx.lineTo(14 * direction, -headSize + 2); // Sideburn tip
+                
+                // --- Bottom/Nape ---
+                ctx.lineTo(6 * direction, -headSize + 5); // Behind ear
+                ctx.lineTo(-4 * direction, -headSize + 10); // Nape
+                
+                // --- Back Spikes (The "Duckbutt") ---
+                // Lowest Spike
+                ctx.lineTo(-16 * direction, -headSize + 15); 
+                ctx.lineTo(-10 * direction, -headSize + 2); // Valley
+                
+                // Middle Spike (Big)
+                ctx.lineTo(-24 * direction, -headSize - 5);
+                ctx.lineTo(-12 * direction, -headSize - 12); // Valley
+                
+                // Top Spike (High)
+                ctx.lineTo(-20 * direction, -headSize - 25);
+                ctx.lineTo(-5 * direction, -headSize - 20); // Top of head
+                
+                ctx.closePath();
                 ctx.fill();
             }
             else if (player.name === 'Rock Lee') {
@@ -1323,6 +1680,30 @@
                 ctx.moveTo(6 * direction, -headSize + 1); ctx.lineTo(8 * direction, -headSize + 6);
                 ctx.stroke();
             }
+            else if (player.name === 'Madara') {
+                ctx.fillStyle = '#000'; // Black hair
+                ctx.beginPath();
+                // Very Long Spiky Hair
+                ctx.moveTo(0, -headSize - 15); // Top
+                // Right side spikes (Back)
+                ctx.lineTo(-headSize - 10, -headSize - 5);
+                ctx.lineTo(-headSize - 20, -headSize + 10);
+                ctx.lineTo(-headSize - 15, -headSize + 25); // Longest point
+                ctx.lineTo(-headSize - 5, -headSize + 15);
+                // Left side (Front/Face)
+                ctx.lineTo(headSize + 5, -headSize + 15); // Bangs covering side
+                ctx.lineTo(headSize, -headSize - 5);
+                ctx.fill();
+                
+                // Rinnegan Eye (Purple with rings)
+                ctx.fillStyle = '#c084fc'; // Purple
+                ctx.beginPath();
+                ctx.arc(4 * direction, -headSize - 1, 2.5, 0, Math.PI*2);
+                ctx.fill();
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 0.5;
+                ctx.beginPath(); ctx.arc(4 * direction, -headSize - 1, 1.5, 0, Math.PI*2); ctx.stroke();
+            }
 
 
             // --- Arms ---
@@ -1333,23 +1714,32 @@
             
             ctx.fillStyle = bodyColor; 
             if(player.name === 'Sasuke') {
-                // White arm warmers
-                ctx.fillStyle = '#e5e7eb'; 
+                // Skin color arms (sleeveless)
+                ctx.fillStyle = skinColor; 
             }
             else if (player.name === 'Rock Lee') ctx.fillStyle = '#16a34a';
             else if (player.name === 'Gaara') ctx.fillStyle = '#7f1d1d';
-            else if (player.name === 'Sakura') ctx.fillStyle = '#fbcfe8'; // Skin color arms (sleeveless/short sleeves)
+            else if (player.name === 'Sakura') ctx.fillStyle = skinColor; // Sleeveless
             else if (player.name === 'Kakashi') ctx.fillStyle = '#1f2937'; // Dark blue sleeves
             else if (player.name === 'Hinata') ctx.fillStyle = '#e9d5ff'; // Lavender sleeves
             else if (player.name === 'Itachi') ctx.fillStyle = '#000000'; // Black sleeves
+            else if (player.name === 'Madara') ctx.fillStyle = '#7f1d1d'; // Red sleeves
 
             ctx.save();
             ctx.translate(0, 0); // Shoulder
             ctx.rotate(armRot);
             ctx.fillRect(-2, 0, 4, 16); // Arm
             
+            // Wristbands / Details
+            if (player.name === 'Sasuke') {
+                // Wristbands
+                ctx.fillStyle = '#1f2937';
+                ctx.fillRect(-2, 10, 4, 4);
+            }
+            
             // Hand
             ctx.fillStyle = skinColor;
+            if (player.name === 'Sakura') ctx.fillStyle = '#1f2937'; // Black gloves
             
             // Shukaku Arm (Transformation)
             if (player.name === 'Gaara' && player.isShukaku) {
@@ -1426,34 +1816,70 @@
         
         function drawRasenganProjectile(x, y, frame, startX, targetX) {
             ctx.save();
-            ctx.shadowColor = '#3b82f6'; ctx.shadowBlur = 20;
+            ctx.shadowColor = '#3b82f6'; ctx.shadowBlur = 25;
             const dir = targetX > startX ? 1 : -1;
-            ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 40 * dir, y); 
-            ctx.strokeStyle = 'rgba(59, 130, 246, 0.5)'; ctx.lineWidth = 15; ctx.lineCap = 'round'; ctx.stroke();
-            ctx.fillStyle = '#60a5fa'; ctx.beginPath(); ctx.arc(x, y, 18, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#eff6ff'; ctx.beginPath(); ctx.arc(x, y, 10, 0, Math.PI * 2); ctx.fill();
-            ctx.strokeStyle = 'white'; ctx.lineWidth = 2;
-            ctx.beginPath(); for (let i = 0; i < 3; i++) { ctx.arc(x, y, 15, frame * 0.5 + (i*2), frame * 0.5 + (i*2) + 1); } ctx.stroke();
+            
+            // Trail
+            ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 50 * dir, y); 
+            ctx.strokeStyle = 'rgba(59, 130, 246, 0.3)'; ctx.lineWidth = 20; ctx.lineCap = 'round'; ctx.stroke();
+
+            // Core
+            const scale = 1 + Math.sin(frame * 0.5) * 0.1;
+            ctx.translate(x, y);
+            ctx.scale(scale, scale);
+            
+            // Inner Core
+            ctx.fillStyle = '#eff6ff'; ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI * 2); ctx.fill();
+            
+            // Outer Shell (Spinning)
+            ctx.rotate(frame * 0.5);
+            ctx.strokeStyle = '#60a5fa'; ctx.lineWidth = 3;
+            for(let i=0; i<4; i++) {
+                ctx.beginPath(); ctx.arc(0, 0, 18, i * Math.PI/2, i * Math.PI/2 + 1); ctx.stroke();
+            }
+            
+            // Particles
+            ctx.fillStyle = '#93c5fd';
+            for(let i=0; i<5; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 20 + Math.random() * 10;
+                ctx.beginPath(); ctx.arc(Math.cos(angle)*dist, Math.sin(angle)*dist, 2, 0, Math.PI*2); ctx.fill();
+            }
+
             ctx.restore();
         }
 
         function drawChidori(x, y, frame) {
             ctx.save();
-            ctx.shadowColor = '#fcd34d'; ctx.shadowBlur = 15;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)'; ctx.lineWidth = 3;
-            for (let i = 0; i < 5; i++) {
+            ctx.shadowColor = '#bae6fd'; ctx.shadowBlur = 20;
+            
+            // Core Glow
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.beginPath(); ctx.arc(x, y, 15, 0, Math.PI * 2); ctx.fill();
+
+            // Lightning Bolts
+            ctx.strokeStyle = '#e0f2fe'; ctx.lineWidth = 2;
+            const numBolts = 8;
+            for (let i = 0; i < numBolts; i++) {
                 ctx.beginPath();
-                let startX = x + Math.random() * 10 - 5; let startY = y + Math.random() * 10 - 5;
+                let startX = x; let startY = y;
                 ctx.moveTo(startX, startY);
-                for (let j = 0; j < 3; j++) {
-                    startX += Math.random() * 15 * (Math.random() > 0.5 ? 1 : -1);
-                    startY += Math.random() * 15 * (Math.random() > 0.5 ? 1 : -1);
+                for (let j = 0; j < 4; j++) {
+                    startX += (Math.random() - 0.5) * 30;
+                    startY += (Math.random() - 0.5) * 30;
                     ctx.lineTo(startX, startY);
                 }
                 ctx.stroke();
             }
-            ctx.fillStyle = 'white'; ctx.globalAlpha = (Math.sin(frame * 0.5) + 1) / 4 + 0.5;
-            ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.fill();
+            
+            // Sparks
+            ctx.fillStyle = '#7dd3fc';
+            for(let i=0; i<5; i++) {
+                ctx.beginPath(); 
+                ctx.arc(x + (Math.random()-0.5)*40, y + (Math.random()-0.5)*40, 2, 0, Math.PI*2); 
+                ctx.fill();
+            }
+            
             ctx.restore();
         }
 
@@ -1512,13 +1938,13 @@
             ctx.restore();
         }
 
-        function drawSandEffect(x, y, frame, targetX) {
+        function drawSandEffect(x, y, frame, targetX, color = '#d6d3d1') {
             ctx.save();
             const dir = targetX > x ? 1 : -1;
             
             // Sand Cloud
-            ctx.fillStyle = '#d6d3d1'; // Stone 300
-            ctx.strokeStyle = '#a8a29e'; // Stone 400
+            ctx.fillStyle = color; 
+            ctx.strokeStyle = color;
             
             const numParticles = 20;
             for(let i=0; i<numParticles; i++) {
@@ -1902,6 +2328,16 @@
 
 
         function drawCanvasContent() {
+            ctx.save();
+            // Screen Shake
+            if (gameState.screenShake > 0) {
+                const dx = (Math.random() - 0.5) * gameState.screenShake;
+                const dy = (Math.random() - 0.5) * gameState.screenShake;
+                ctx.translate(dx, dy);
+                gameState.screenShake *= 0.9;
+                if (gameState.screenShake < 0.5) gameState.screenShake = 0;
+            }
+
             drawBackground();
 
             drawCharacter(gameState.playerA, ctx);
@@ -1916,6 +2352,8 @@
                 }
                 return false;
             });
+            
+            ctx.restore();
         }
 
         // --- Animations ---
@@ -1944,6 +2382,7 @@
                     } else {
                         attacker.x = startX;
                         gameState.effects.push({ type: 'TaijutsuHit', x: targetX, y: targetY, frame: 0 });
+                        gameState.screenShake = isUltimate ? 15 : 5; // Trigger Shake
                         resolve(); return;
                     }
                     requestAnimationFrame(step);
@@ -1976,12 +2415,14 @@
                             drawBeastBall(currentX, currentY, frame, startX, targetX);
                         } else if (jutsuType === 'Sharingan' || jutsuType === 'Tsukuyomi') {
                             drawSharinganEffect(ctx, W/2, H/2, frame);
-                        } else if (jutsuType === 'Fireball') {
-                            drawFireball(currentX, currentY, frame, startX, targetX);
+                        } else if (jutsuType === 'Fireball' || jutsuType === 'Majestic Flame') {
+                            drawFireball(currentX, currentY, frame, startX, targetX, jutsuType === 'Majestic Flame');
                         } else if (jutsuType === 'Sand') {
                             drawSandEffect(startX, startY, frame, targetX);
                         } else if (jutsuType === 'Kamui') {
                             drawKamuiEffect(targetX, targetY - 30, frame); // Kamui happens on target
+                        } else if (jutsuType === 'Meteor Drop') {
+                            drawMeteor(targetX, targetY, frame);
                         } else if (jutsuType === '8 Trigrams') {
                             draw8TrigramsEffect(startX, startY, frame);
                         } else if (jutsuType === 'Giant Beast Bomb') {
@@ -2006,12 +2447,77 @@
                              ctx.quadraticCurveTo((startX+targetX)/2, startY - 50, targetX, targetY);
                              ctx.stroke();
                              ctx.restore();
+                        } else if (jutsuType === 'Ten Tails Swipe') {
+                             // Swipe effect
+                             ctx.save();
+                             ctx.strokeStyle = '#d4d4d8';
+                             ctx.lineWidth = 10;
+                             ctx.beginPath();
+                             ctx.moveTo(startX, startY);
+                             ctx.lineTo(targetX, targetY);
+                             ctx.stroke();
+                             ctx.restore();
+                        } else if (jutsuType === 'Cataclysm') {
+                             // Earth shake / debris
+                             ctx.save();
+                             ctx.fillStyle = '#78350f';
+                             ctx.fillRect(targetX - 20 + Math.random()*40, targetY, 10, -Math.random()*50);
+                             ctx.restore();
+                        } else if (jutsuType === 'God Tree Beam') {
+                             // Giant Beam
+                             ctx.save();
+                             ctx.strokeStyle = '#ef4444';
+                             ctx.lineWidth = 30;
+                             ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 20;
+                             ctx.beginPath();
+                             ctx.moveTo(startX, startY);
+                             ctx.lineTo(targetX, targetY);
+                             ctx.stroke();
+                             ctx.restore();
+                        } else if (jutsuType === 'Six Paths Rasenshuriken') {
+                             drawRasenganProjectile(currentX, currentY, frame, startX, targetX);
+                        } else if (jutsuType === 'Indra Arrow') {
+                             ctx.save();
+                             ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 5; ctx.shadowColor = '#a855f7'; ctx.shadowBlur = 20;
+                             ctx.beginPath(); ctx.moveTo(startX, startY); ctx.lineTo(currentX, currentY); ctx.stroke();
+                             ctx.restore();
+                        } else if (jutsuType === 'Night Guy') {
+                             ctx.save();
+                             ctx.fillStyle = 'rgba(220, 38, 38, 0.8)'; ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 30;
+                             ctx.beginPath(); ctx.arc(currentX, currentY, 40, 0, Math.PI*2); ctx.fill();
+                             ctx.restore();
+                        } else if (jutsuType === 'Gold Tsunami') {
+                             drawSandEffect(startX, startY, frame, targetX, '#fcd34d'); 
+                        } else if (jutsuType === 'Acid Slime') {
+                             ctx.save();
+                             ctx.fillStyle = '#86efac'; ctx.shadowColor = '#22c55e'; ctx.shadowBlur = 15;
+                             ctx.beginPath(); ctx.arc(currentX, currentY, 25, 0, Math.PI*2); ctx.fill();
+                             ctx.restore();
+                        } else if (jutsuType === 'Kamui Shuriken') {
+                             ctx.save();
+                             ctx.fillStyle = '#000'; ctx.shadowColor = '#3b82f6'; ctx.shadowBlur = 20;
+                             ctx.translate(currentX, currentY); ctx.rotate(frame * 0.5);
+                             ctx.beginPath();
+                             for(let i=0; i<4; i++) { ctx.rotate(Math.PI/2); ctx.moveTo(0,0); ctx.lineTo(30, 10); ctx.lineTo(0, 40); ctx.lineTo(-30, 10); }
+                             ctx.fill();
+                             ctx.restore();
+                        } else if (jutsuType === 'Silver Wheel') {
+                             ctx.save();
+                             ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 20; ctx.shadowColor = '#fff'; ctx.shadowBlur = 20;
+                             ctx.beginPath(); ctx.moveTo(startX, startY); ctx.lineTo(currentX, currentY); ctx.stroke();
+                             ctx.restore();
+                        } else if (jutsuType === 'Yasaka Beads') {
+                             ctx.save();
+                             ctx.fillStyle = '#ef4444'; ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 20;
+                             ctx.beginPath(); ctx.arc(currentX, currentY, 20, 0, Math.PI*2); ctx.fill();
+                             ctx.restore();
                         } else {
                             drawChidori(currentX, currentY, frame);
                         }
                         requestAnimationFrame(step);
                     } else {
                         gameState.effects.push({ type: 'TaijutsuHit', x: targetX, y: targetY, frame: 0 });
+                        gameState.screenShake = 10; // Trigger Shake
                         resolve(); return;
                     }
                 }
@@ -2033,9 +2539,15 @@
 
             if (gameState.mode === 'BOSS') {
                 const rand = Math.random();
-                if (rand < 0.4) action = 'Slash';
-                else if (rand < 0.7) action = 'Nine Tails Whip';
-                else action = 'Giant Beast Bomb';
+                if (me.name === 'Ten Tails') {
+                     if (rand < 0.4) action = 'Ten Tails Swipe';
+                     else if (rand < 0.7) action = 'Cataclysm';
+                     else action = 'God Tree Beam';
+                } else {
+                    if (rand < 0.4) action = 'Slash';
+                    else if (rand < 0.7) action = 'Nine Tails Whip';
+                    else action = 'Giant Beast Bomb';
+                }
                 window.handleAction('B', 'BossMove', action);
                 return;
             }
@@ -2056,34 +2568,49 @@
         const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 
         function getUltimateMove(player) {
-            if (player.name === 'Rock Lee') return { name: 'Primary Lotus', ...MOVES['Primary Lotus'] };
+            if (player.name === 'Rock Lee') {
+                if (player.isNightGuy) return { name: 'Night Guy', ...MOVES['Night Guy'] };
+                if (player.isNinthGate) return { name: 'Primary Lotus', ...MOVES['Primary Lotus'] }; // Keep Lotus or upgrade? Let's keep Lotus for 2nd form
+                return { name: 'Primary Lotus', ...MOVES['Primary Lotus'] };
+            }
             if (player.name === 'Gaara') {
+                if (player.isGoldenSand) return { name: 'Gold Tsunami', ...MOVES['Gold Sand Tsunami'] };
                 if (player.isShukaku) return { name: 'Sand Burial', ...MOVES['Sand Burial'] };
                 return { name: 'Sand Coffin', ...MOVES['Sand Coffin'] };
             }
             if (player.name === 'Sakura') {
+                if (player.isKatsuyu) return { name: 'Acid Slime', ...MOVES['Katsuyu Acid'] };
                 if (player.is100Healings) return { name: '100 Healings', ...MOVES['100 Healings Smash'] };
                 return { name: 'Super Punch', ...MOVES['Super Punch'] };
             }
             if (player.name === 'Hinata') {
+                if (player.isTenseigan) return { name: 'Silver Wheel', ...MOVES['Silver Wheel'] };
                 if (player.isTwinLion) return { name: 'Twin Lion Fists', ...MOVES['Twin Lion Fists'] };
                 return { name: '8 Trigrams', ...MOVES['8 Trigrams'] };
             }
             if (player.name === 'Kakashi') {
+                if (player.isDMS) return { name: 'Kamui Shuriken', ...MOVES['Kamui Shuriken'] };
                 if (player.isMangekyou) return { name: 'Kamui', ...MOVES['Kamui'] };
                 return { name: 'Lightning Blade', ...MOVES['Lightning Blade'] };
             }
             if (player.name === 'Naruto') {
+                if (player.isSixPaths) return { name: '6 Paths RS', ...MOVES['Six Paths Rasenshuriken'] };
                 if (player.isThreeTails) return { name: 'Beast Ball', ...MOVES['Beast Ball'] };
                 return { name: 'Rasengan', ...MOVES.Rasengan };
             }
             if (player.name === 'Sasuke') {
+                if (player.isRinnegan) return { name: 'Indra Arrow', ...MOVES['Indra\'s Arrow'] };
                 if (player.isCurseMark) return { name: 'Sharingan', ...MOVES.Sharingan };
                 return { name: 'Chidori', ...MOVES.Chidori };
             }
             if (player.name === 'Itachi') {
+                if (player.isEdoTensei) return { name: 'Yasaka Beads', ...MOVES['Yasaka Magatama'] };
                 if (player.isSusanoo) return { name: 'Tsukuyomi', ...MOVES['Tsukuyomi'] };
                 return { name: 'Fireball', ...MOVES['Fireball'] };
+            }
+            if (player.name === 'Madara') {
+                if (player.isSusanoo) return { name: 'Meteor Drop', ...MOVES['Meteor Drop'] };
+                return { name: 'Majestic Flame', ...MOVES['Majestic Destroyer Flame'] };
             }
             return { name: 'Attack', cost: 999 };
         }
@@ -2091,48 +2618,99 @@
         // --- NEW BEAST BALL EFFECT ---
         function drawBeastBall(x, y, frame, startX, targetX) {
             ctx.save();
-            ctx.shadowColor = '#7f1d1d'; ctx.shadowBlur = 20;
+            ctx.shadowColor = '#7f1d1d'; ctx.shadowBlur = 30;
             
             // Dark purple core
             ctx.fillStyle = '#4c1d95'; // Violet 900
-            ctx.beginPath(); ctx.arc(x, y, 25, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(x, y, 25 + Math.sin(frame*0.5)*2, 0, Math.PI * 2); ctx.fill();
             
             // Black center
             ctx.fillStyle = '#000'; 
             ctx.beginPath(); ctx.arc(x, y, 15, 0, Math.PI * 2); ctx.fill();
             
-            // Energy particles
+            // Energy particles (Imploding)
             ctx.strokeStyle = '#a855f7'; // Purple 500
             ctx.lineWidth = 2;
-            ctx.beginPath();
-            for(let i=0; i<4; i++) {
-                ctx.arc(x, y, 20 + (frame % 10), i * Math.PI/2 + frame*0.2, i * Math.PI/2 + frame*0.2 + 1);
+            const numParticles = 8;
+            for(let i=0; i<numParticles; i++) {
+                const angle = (frame * 0.2) + (i * Math.PI * 2 / numParticles);
+                const dist = 35 - (frame % 10);
+                const px = x + Math.cos(angle) * dist;
+                const py = y + Math.sin(angle) * dist;
+                ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(x, y); ctx.stroke();
             }
-            ctx.stroke();
             
             ctx.restore();
         }
 
         // --- NEW FIREBALL EFFECT ---
-        function drawFireball(x, y, frame, startX, targetX) {
+        function drawFireball(x, y, frame, startX, targetX, isMajestic = false) {
             ctx.save();
-            ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 20;
+            ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 25;
             const dir = targetX > startX ? 1 : -1;
             
+            const sizeMult = isMajestic ? 2.5 : 1; // Bigger for Madara
+
             // Core
-            ctx.fillStyle = '#f97316'; // Orange
-            ctx.beginPath(); ctx.arc(x, y, 25, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#ef4444'; // Red center
-            ctx.beginPath(); ctx.arc(x, y, 15, 0, Math.PI * 2); ctx.fill();
+            const gradient = ctx.createRadialGradient(x, y, 5 * sizeMult, x, y, 30 * sizeMult);
+            gradient.addColorStop(0, '#fef08a'); // Yellow center
+            gradient.addColorStop(0.4, '#f97316'); // Orange
+            gradient.addColorStop(1, 'rgba(239, 68, 68, 0)'); // Red fade
             
-            // Trail
-            ctx.fillStyle = 'rgba(249, 115, 22, 0.5)';
+            ctx.fillStyle = gradient;
+            ctx.beginPath(); ctx.arc(x, y, 30 * sizeMult, 0, Math.PI * 2); ctx.fill();
+            
+            // Trail / Smoke
+            const numParticles = 10;
+            for(let i=0; i<numParticles; i++) {
+                const px = x - (dir * i * 5 * sizeMult) - (frame * dir * 2);
+                const py = y + (Math.random() - 0.5) * 20 * sizeMult;
+                const size = (20 - i) * sizeMult;
+                if(size > 0) {
+                    ctx.fillStyle = `rgba(124, 45, 18, ${0.5 - i/20})`; // Brownish smoke
+                    ctx.beginPath(); ctx.arc(px, py, size, 0, Math.PI*2); ctx.fill();
+                }
+            }
+            
+            ctx.restore();
+        }
+
+        function drawMeteor(x, y, frame) {
+            ctx.save();
+            
+            // Shadow growing on ground
+            const progress = frame / 30;
+            const shadowSize = 100 * progress;
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';
             ctx.beginPath();
-            ctx.moveTo(x, y - 20);
-            ctx.lineTo(x - 60 * dir, y);
-            ctx.lineTo(x, y + 20);
+            ctx.ellipse(x, y, shadowSize, shadowSize/2, 0, 0, Math.PI*2);
+            ctx.fill();
+
+            // Meteor falling
+            const startY = -200;
+            const currentY = startY + (y - startY) * progress;
+            
+            ctx.translate(x, currentY);
+            ctx.rotate(frame * 0.1);
+            
+            // Rock texture
+            ctx.fillStyle = '#4b5563'; // Grey rock
+            ctx.beginPath();
+            ctx.arc(0, 0, 80, 0, Math.PI*2);
             ctx.fill();
             
+            // Craters
+            ctx.fillStyle = '#374151';
+            ctx.beginPath(); ctx.arc(-20, -20, 15, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(30, 10, 20, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(-10, 40, 10, 0, Math.PI*2); ctx.fill();
+            
+            // Fire trail
+            ctx.fillStyle = 'rgba(239, 68, 68, 0.5)';
+            ctx.beginPath();
+            ctx.arc(0, -80, 70, 0, Math.PI, true);
+            ctx.fill();
+
             ctx.restore();
         }
 
@@ -2156,6 +2734,31 @@
             document.getElementById('maxChakraB').textContent = p2.maxChakra;
             document.getElementById('healthBarB').style.width = `${(p2.hp / p2.maxHp) * 100}%`;
             document.getElementById('chakraBarB').style.width = `${(p2.chakra / p2.maxChakra) * 100}%`;
+
+            // --- Boss Mode Team Display ---
+            const teamDisplay = document.getElementById('battle-team-display');
+            if (gameState.mode === 'BOSS') {
+                teamDisplay.classList.remove('hidden');
+                teamDisplay.innerHTML = '';
+                const icons = {'Naruto':'🦊','Sasuke':'⚡','Rock Lee':'👊','Gaara':'🏺','Sakura':'🌸','Kakashi':'⚡','Hinata':'👁️','Itachi':'🌑'};
+                
+                gameState.teamA.forEach((member, index) => {
+                    const slot = document.createElement('div');
+                    slot.className = `w-10 h-10 bg-gray-700 border ${index === gameState.teamIndex ? 'border-yellow-400' : 'border-gray-500'} rounded flex items-center justify-center text-lg relative`;
+                    slot.textContent = icons[member.name];
+                    
+                    if (member.hp <= 0) {
+                        const xMark = document.createElement('div');
+                        xMark.className = "absolute inset-0 flex items-center justify-center text-red-600 font-bold text-2xl";
+                        xMark.textContent = "X";
+                        slot.appendChild(xMark);
+                        slot.classList.add('opacity-50');
+                    }
+                    teamDisplay.appendChild(slot);
+                });
+            } else {
+                teamDisplay.classList.add('hidden');
+            }
 
             const isA = gameState.turn === 'A';
             const gameOver = checkWinCondition();
@@ -2226,11 +2829,16 @@
                 gameState.playerA = gameState.teamA[0];
                 gameState.playerA.x = W * 0.2; gameState.playerA.y = GROUND_Y;
                 
-                gameState.playerB = { hp: 1000, maxHp: 1000, chakra: 1000, maxChakra: 1000, x: W * 0.7, y: GROUND_Y, color: '#f97316', name: 'Nine Tails', pose: 'idle' };
+                let bossHp = 1000;
+                if (selectedBoss === 'Ten Tails') bossHp = 2000;
+                
+                gameState.playerB = { hp: bossHp, maxHp: bossHp, chakra: 1000, maxChakra: 1000, x: W * 0.7, y: GROUND_Y, color: '#f97316', name: selectedBoss, pose: 'idle' };
             } else {
                 // Normal Reset
-                gameState.playerA = { hp: 100, maxHp: 100, chakra: 50, maxChakra: 50, x: W * 0.2, y: GROUND_Y, color: '#000000', name: p1Selection, pose: 'idle', isCurseMark: false, isThreeTails: false, isNinthGate: false, isShukaku: false, is100Healings: false, isMangekyou: false, isTwinLion: false, isSusanoo: false };
-                gameState.playerB = { hp: 100, maxHp: 100, chakra: 50, maxChakra: 50, x: W * 0.8, y: GROUND_Y, color: '#000000', name: p2Selection, pose: 'idle', isCurseMark: false, isThreeTails: false, isNinthGate: false, isShukaku: false, is100Healings: false, isMangekyou: false, isTwinLion: false, isSusanoo: false };
+                const p1Hp = p1Selection === 'Madara' ? 300 : 100;
+                const p2Hp = p2Selection === 'Madara' ? 300 : 100;
+                gameState.playerA = { hp: p1Hp, maxHp: p1Hp, chakra: 50, maxChakra: 50, x: W * 0.2, y: GROUND_Y, color: '#000000', name: p1Selection, pose: 'idle', isCurseMark: false, isThreeTails: false, isNinthGate: false, isShukaku: false, is100Healings: false, isMangekyou: false, isTwinLion: false, isSusanoo: false };
+                gameState.playerB = { hp: p2Hp, maxHp: p2Hp, chakra: 50, maxChakra: 50, x: W * 0.8, y: GROUND_Y, color: '#000000', name: p2Selection, pose: 'idle', isCurseMark: false, isThreeTails: false, isNinthGate: false, isShukaku: false, is100Healings: false, isMangekyou: false, isTwinLion: false, isSusanoo: false };
             }
             
             gameState.turn = 'A';
@@ -2395,7 +3003,7 @@
 
             if (checkWinCondition()) {
                 if(gameState.playerA.hp <= 0) { 
-                    if (gameState.mode === 'BOSS' && gameState.teamIndex < 4) {
+                    if (gameState.mode === 'BOSS' && gameState.teamIndex < gameState.teamA.length - 1) {
                         // Swap Teammate
                         gameState.teamIndex++;
                         gameState.playerA = gameState.teamA[gameState.teamIndex];
@@ -2429,150 +3037,147 @@
         function tryTransformation(target) {
             if (target.hp > 0) return;
             
-            // 50% Chance for any character to transform (Always in Boss Mode)
-            if (gameState.mode !== 'BOSS' && Math.random() >= 0.5) return;
-
+            // 100% Chance for transformation now
+            
             let transformed = false;
             let msg = "";
             let floatText = "";
             let color = "";
+            let newHp = 200;
 
-            if (target.name === 'Sasuke' && !target.isCurseMark) {
+            // --- 3rd Form Upgrades (From 2nd Form) ---
+            if (target.name === 'Sasuke' && target.isCurseMark && !target.isRinnegan) {
+                target.isRinnegan = true;
+                msg = "SASUKE AWAKENS THE RINNEGAN!";
+                floatText = "RINNEGAN!";
+                color = "#a855f7";
+                transformed = true;
+                newHp = 300;
+            } else if (target.name === 'Naruto' && target.isThreeTails && !target.isSixPaths) {
+                target.isSixPaths = true;
+                msg = "NARUTO ENTERS SIX PATHS SAGE MODE!";
+                floatText = "SIX PATHS!";
+                color = "#facc15";
+                transformed = true;
+                newHp = 300;
+            } else if (target.name === 'Rock Lee' && target.isNinthGate && !target.isNightGuy) {
+                target.isNightGuy = true;
+                msg = "ROCK LEE UNLEASHES THE 8TH GATE: NIGHT GUY!";
+                floatText = "NIGHT GUY!";
+                color = "#ef4444";
+                transformed = true;
+                newHp = 300;
+            } else if (target.name === 'Gaara' && target.isShukaku && !target.isGoldenSand) {
+                target.isGoldenSand = true;
+                msg = "GAARA CONTROLS THE GOLD DUST!";
+                floatText = "GOLD SAND!";
+                color = "#fcd34d";
+                transformed = true;
+                newHp = 300;
+            } else if (target.name === 'Sakura' && target.is100Healings && !target.isKatsuyu) {
+                target.isKatsuyu = true;
+                msg = "SAKURA SUMMONS KATSUYU!";
+                floatText = "KATSUYU!";
+                color = "#86efac";
+                transformed = true;
+                newHp = 300;
+            } else if (target.name === 'Kakashi' && target.isMangekyou && !target.isDMS) {
+                target.isDMS = true;
+                msg = "KAKASHI AWAKENS DOUBLE MANGEKYOU SHARINGAN!";
+                floatText = "DMS!";
+                color = "#3b82f6";
+                transformed = true;
+                newHp = 300;
+            } else if (target.name === 'Hinata' && target.isTwinLion && !target.isTenseigan) {
+                target.isTenseigan = true;
+                msg = "HINATA AWAKENS THE TENSEIGAN!";
+                floatText = "TENSEIGAN!";
+                color = "#22d3ee";
+                transformed = true;
+                newHp = 300;
+            } else if (target.name === 'Itachi' && target.isSusanoo && !target.isEdoTensei) {
+                target.isEdoTensei = true;
+                msg = "ITACHI IS REANIMATED! EDO TENSEI!";
+                floatText = "EDO TENSEI!";
+                color = "#9ca3af";
+                transformed = true;
+                newHp = 300;
+            }
+
+            // --- 2nd Form Upgrades (From Base) ---
+            else if (target.name === 'Sasuke' && !target.isCurseMark && !target.isRinnegan) {
                 target.isCurseMark = true;
                 msg = "SASUKE AWAKENS! CURSE MARK LEVEL 2!";
                 floatText = "CURSE MARK!";
                 color = "#a855f7";
                 transformed = true;
-            } else if (target.name === 'Naruto' && !target.isThreeTails) {
+            } else if (target.name === 'Naruto' && !target.isThreeTails && !target.isSixPaths) {
                 target.isThreeTails = true;
                 msg = "NARUTO TRANSFORMS! THREE-TAILS FORM!";
                 floatText = "THREE-TAILS!";
                 color = "#ef4444";
                 transformed = true;
-            } else if (target.name === 'Rock Lee' && !target.isNinthGate) {
+            } else if (target.name === 'Rock Lee' && !target.isNinthGate && !target.isNightGuy) {
                 target.isNinthGate = true;
                 msg = "ROCK LEE OPENS THE 9TH GATE! GATE OF PAIN!";
                 floatText = "9TH GATE!";
                 color = "#ef4444";
                 transformed = true;
-            } else if (target.name === 'Gaara' && !target.isShukaku) {
+            } else if (target.name === 'Gaara' && !target.isShukaku && !target.isGoldenSand) {
                 target.isShukaku = true;
                 msg = "GAARA TRANSFORMS! SHUKAKU POSSESSION!";
                 floatText = "SHUKAKU!";
                 color = "#7c2d12";
                 transformed = true;
-            } else if (target.name === 'Sakura' && !target.is100Healings) {
+            } else if (target.name === 'Sakura' && !target.is100Healings && !target.isKatsuyu) {
                 target.is100Healings = true;
                 msg = "SAKURA ACTIVATES CREATION REBIRTH!";
                 floatText = "CREATION REBIRTH!";
                 color = "#db2777";
                 transformed = true;
-            } else if (target.name === 'Kakashi' && !target.isMangekyou) {
+            } else if (target.name === 'Kakashi' && !target.isMangekyou && !target.isDMS) {
                 target.isMangekyou = true;
                 msg = "KAKASHI AWAKENS MANGEKYOU SHARINGAN!";
                 floatText = "MANGEKYOU!";
                 color = "#dc2626";
                 transformed = true;
-            } else if (target.name === 'Hinata' && !target.isTwinLion) {
+            } else if (target.name === 'Hinata' && !target.isTwinLion && !target.isTenseigan) {
                 target.isTwinLion = true;
                 msg = "HINATA AWAKENS TWIN LION FISTS!";
                 floatText = "TWIN LION!";
                 color = "#a855f7";
                 transformed = true;
-            } else if (target.name === 'Itachi' && !target.isSusanoo) {
+            } else if (target.name === 'Itachi' && !target.isSusanoo && !target.isEdoTensei) {
                 target.isSusanoo = true;
                 msg = "ITACHI SUMMONS SUSANOO!";
                 floatText = "SUSANOO!";
                 color = "#ef4444";
                 transformed = true;
+            } else if (target.name === 'Madara' && !target.isSusanoo) {
+                target.isSusanoo = true;
+                msg = "MADARA SUMMONS PERFECT SUSANOO!";
+                floatText = "PERFECT SUSANOO!";
+                color = "#3b82f6";
+                transformed = true;
+                newHp = 500;
             }
 
             if (transformed) {
-                target.hp = 200;
-                target.maxHp = 200;
-                target.chakra = 100;
-                target.maxChakra = 100;
+                target.hp = newHp;
+                target.maxHp = newHp;
+                
+                let newChakra = 100;
+                if (newHp >= 300) newChakra = 150; // 3rd Form or Madara
+
+                target.chakra = newChakra;
+                target.maxChakra = newChakra;
                 gameState.message = msg;
                 spawnFloatingText(target.x, target.y - 90, floatText, color, true);
                 gameState.effects.push({ type: 'ChakraFocus', x: target.x, y: (target.y - CHAR_SIZE * 2) - CHAR_SIZE, frame: 0 });
             }
         }
 
-        function drawNineTails(x, y, direction, pose) {
-            ctx.save();
-            ctx.translate(x, y);
-            ctx.scale(direction, 1); // Face direction
 
-            // Scale up significantly
-            const scale = 3.5;
-            ctx.scale(scale, scale);
-
-            // Colors
-            const furColor = '#f97316'; // Orange-500
-            const darkFur = '#c2410c'; // Orange-700
-            const eyeColor = '#ef4444'; // Red
-
-            // Body (Crouched Fox)
-            ctx.fillStyle = furColor;
-            ctx.beginPath();
-            ctx.ellipse(0, -15, 25, 15, 0, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Head
-            ctx.save();
-            ctx.translate(-20, -25);
-            // Ears
-            ctx.beginPath();
-            ctx.moveTo(0, 0); ctx.lineTo(5, -15); ctx.lineTo(10, 0);
-            ctx.moveTo(15, 0); ctx.lineTo(20, -15); ctx.lineTo(25, 0);
-            ctx.fill();
-            // Snout
-            ctx.beginPath();
-            ctx.ellipse(12, 5, 15, 12, 0, 0, Math.PI * 2);
-            ctx.fill();
-            // Eyes
-            ctx.fillStyle = eyeColor;
-            ctx.beginPath();
-            ctx.moveTo(5, 0); ctx.lineTo(10, 2); ctx.lineTo(5, 4); // Left Eye
-            ctx.moveTo(15, 0); ctx.lineTo(20, 2); ctx.lineTo(15, 4); // Right Eye
-            ctx.fill();
-            // Teeth
-            ctx.fillStyle = '#fff';
-            ctx.beginPath();
-            ctx.moveTo(8, 10); ctx.lineTo(10, 14); ctx.lineTo(12, 10);
-            ctx.moveTo(14, 10); ctx.lineTo(16, 14); ctx.lineTo(18, 10);
-            ctx.fill();
-            ctx.restore();
-
-            // Tails (9 of them!)
-            ctx.strokeStyle = furColor;
-            ctx.lineWidth = 4;
-            ctx.lineCap = 'round';
-            for(let i=0; i<9; i++) {
-                ctx.beginPath();
-                const angle = (i * 0.2) - 0.8;
-                const tailX = 20;
-                const tailY = -15;
-                
-                // Waving animation
-                const wave = Math.sin(Date.now() / 200 + i) * 5;
-                
-                ctx.moveTo(tailX, tailY);
-                ctx.quadraticCurveTo(tailX + 30, tailY - 20 + (i*5) + wave, tailX + 50, tailY - 10 + (i*5) + wave);
-                ctx.stroke();
-            }
-
-            // Legs
-            ctx.fillStyle = darkFur;
-            // Front Left
-            ctx.beginPath(); ctx.moveTo(-10, -5); ctx.lineTo(-15, 10); ctx.lineTo(-5, 10); ctx.fill();
-            // Front Right
-            ctx.beginPath(); ctx.moveTo(5, -5); ctx.lineTo(0, 10); ctx.lineTo(10, 10); ctx.fill();
-            // Back Leg
-            ctx.beginPath(); ctx.arc(15, -5, 10, 0, Math.PI); ctx.fill();
-
-            ctx.restore();
-        }
 
         // Boss Health Bar (Top of Screen)
         function drawBossHealthBar(ctx, boss) {
