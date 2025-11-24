@@ -112,9 +112,32 @@
 <div id="game-container" class="game-container">
     
     <!-- Start Screen Overlay -->
-    <div id="startOverlay" class="overlay flex flex-col items-center justify-center bg-gray-900 text-white p-4">
+    <div id="startOverlay" class="overlay flex flex-col items-center justify-center bg-gray-900 text-white p-4 overflow-y-auto">
         <h1 class="text-6xl font-bold text-yellow-400 mb-2 tracking-wider" style="font-family: 'Jockey One', sans-serif; text-shadow: 4px 4px 0 #000;">STICK HOKAGE</h1>
         
+        <!-- Game Modes (Top Priority) -->
+        <div class="flex flex-col items-center space-y-4 w-full mb-6">
+            <!-- Standard Modes -->
+            <div class="flex space-x-4 items-center">
+                <button onclick="startGame('CPU')" class="btn-action bg-yellow-500 text-gray-900 text-lg hover:bg-yellow-600 min-w-[180px] font-bold shadow-lg transform hover:-translate-y-1 transition-transform rounded-lg">
+                    VS CPU
+                </button>
+                <button onclick="startGame('PVP')" class="btn-action bg-red-600 text-white text-lg hover:bg-red-700 min-w-[180px] font-bold shadow-lg transform hover:-translate-y-1 transition-transform rounded-lg">
+                    VS PLAYER
+                </button>
+            </div>
+
+            <!-- Boss Modes -->
+            <div class="flex space-x-4 mt-1">
+                <button onclick="startBossSelection('Nine Tails')" class="btn-action bg-purple-800 text-white text-xs hover:bg-purple-900 px-4 py-2 font-bold shadow-md transform hover:-translate-y-1 transition-transform border border-purple-500 rounded-full">
+                    VS NINE TAILS
+                </button>
+                <button onclick="startBossSelection('Ten Tails')" class="btn-action bg-gray-800 text-white text-xs hover:bg-gray-900 px-4 py-2 font-bold shadow-md transform hover:-translate-y-1 transition-transform border border-gray-500 rounded-full">
+                    VS TEN TAILS
+                </button>
+            </div>
+        </div>
+
         <!-- Selection Status -->
         <div class="mb-4 text-center">
             <p class="text-gray-400 uppercase tracking-widest text-sm">Select Your Fighter</p>
@@ -122,135 +145,137 @@
         </div>
 
         <!-- Main Selection Area -->
-        <div class="flex justify-between items-center w-full max-w-5xl mb-6 px-4">
+        <div class="flex justify-between items-center w-full max-w-5xl mb-4 px-4">
             
             <!-- Player 1 Preview -->
             <div class="flex flex-col items-center w-1/4 cursor-pointer transition-transform hover:scale-105 scale-105" onclick="setSelectionMode(1)" id="p1-preview">
                 <div class="text-blue-400 font-bold text-2xl mb-2">PLAYER 1</div>
-                <div id="p1-portrait" class="w-40 h-40 bg-orange-500 border-4 border-blue-500 rounded-xl flex items-center justify-center mb-4 shadow-lg relative overflow-hidden">
-                    <span class="text-6xl">🦊</span>
+                <div id="p1-portrait" class="w-32 h-32 bg-orange-500 border-4 border-blue-500 rounded-xl flex items-center justify-center mb-4 shadow-lg relative overflow-hidden">
+                    <span class="text-5xl">🦊</span>
                 </div>
-                <div id="p1-name" class="text-4xl font-bold text-white tracking-tighter">NARUTO</div>
+                <div id="p1-name" class="text-3xl font-bold text-white tracking-tighter">NARUTO</div>
             </div>
 
             <!-- Character Grid -->
-            <div class="grid grid-cols-3 gap-3 mx-4">
+            <div class="grid grid-cols-5 gap-2 mx-4">
                 <!-- Naruto -->
-                <div onclick="selectChar('Naruto')" class="relative cursor-pointer w-24 h-24 bg-orange-600 hover:bg-orange-500 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
-                    <span class="text-4xl mb-1">🦊</span>
-                    <span class="text-xs font-bold uppercase">Naruto</span>
+                <div onclick="selectChar('Naruto')" class="relative cursor-pointer w-14 h-14 bg-orange-600 hover:bg-orange-500 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
+                    <span class="text-2xl mb-1">🦊</span>
+                    <span class="text-[10px] font-bold uppercase">Naruto</span>
                     <div id="p1-indicator-Naruto" class="p1-indicator absolute top-0 left-0 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-br shadow-md">P1</div>
                     <div id="p2-indicator-Naruto" class="p2-indicator absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-bl shadow-md hidden">P2</div>
                 </div>
                 <!-- Sasuke -->
-                <div onclick="selectChar('Sasuke')" class="relative cursor-pointer w-24 h-24 bg-blue-700 hover:bg-blue-600 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
-                    <span class="text-4xl mb-1">⚡</span>
-                    <span class="text-xs font-bold uppercase">Sasuke</span>
+                <div onclick="selectChar('Sasuke')" class="relative cursor-pointer w-14 h-14 bg-blue-700 hover:bg-blue-600 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
+                    <span class="text-2xl mb-1">⚡</span>
+                    <span class="text-[10px] font-bold uppercase">Sasuke</span>
                     <div id="p1-indicator-Sasuke" class="p1-indicator absolute top-0 left-0 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-br shadow-md hidden">P1</div>
                     <div id="p2-indicator-Sasuke" class="p2-indicator absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-bl shadow-md">P2</div>
                 </div>
                 <!-- Rock Lee -->
-                <div onclick="selectChar('Rock Lee')" class="relative cursor-pointer w-24 h-24 bg-green-700 hover:bg-green-600 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
-                    <span class="text-4xl mb-1">👊</span>
-                    <span class="text-xs font-bold uppercase">Rock Lee</span>
+                <div onclick="selectChar('Rock Lee')" class="relative cursor-pointer w-14 h-14 bg-green-700 hover:bg-green-600 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
+                    <span class="text-2xl mb-1">👊</span>
+                    <span class="text-[10px] font-bold uppercase">Rock Lee</span>
                     <div id="p1-indicator-Rock Lee" class="p1-indicator absolute top-0 left-0 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-br shadow-md hidden">P1</div>
                     <div id="p2-indicator-Rock Lee" class="p2-indicator absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-bl shadow-md hidden">P2</div>
                 </div>
                 <!-- Gaara -->
-                <div onclick="selectChar('Gaara')" class="relative cursor-pointer w-24 h-24 bg-red-900 hover:bg-red-800 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
-                    <span class="text-4xl mb-1">🏺</span>
-                    <span class="text-xs font-bold uppercase">Gaara</span>
+                <div onclick="selectChar('Gaara')" class="relative cursor-pointer w-14 h-14 bg-red-900 hover:bg-red-800 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
+                    <span class="text-2xl mb-1">🏺</span>
+                    <span class="text-[10px] font-bold uppercase">Gaara</span>
                     <div id="p1-indicator-Gaara" class="p1-indicator absolute top-0 left-0 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-br shadow-md hidden">P1</div>
                     <div id="p2-indicator-Gaara" class="p2-indicator absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-bl shadow-md hidden">P2</div>
                 </div>
                 <!-- Sakura -->
-                <div onclick="selectChar('Sakura')" class="relative cursor-pointer w-24 h-24 bg-pink-600 hover:bg-pink-500 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
-                    <span class="text-4xl mb-1">🌸</span>
-                    <span class="text-xs font-bold uppercase">Sakura</span>
+                <div onclick="selectChar('Sakura')" class="relative cursor-pointer w-14 h-14 bg-pink-600 hover:bg-pink-500 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
+                    <span class="text-2xl mb-1">🌸</span>
+                    <span class="text-[10px] font-bold uppercase">Sakura</span>
                     <div id="p1-indicator-Sakura" class="p1-indicator absolute top-0 left-0 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-br shadow-md hidden">P1</div>
                     <div id="p2-indicator-Sakura" class="p2-indicator absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-bl shadow-md hidden">P2</div>
                 </div>
                 <!-- Kakashi -->
-                <div onclick="selectChar('Kakashi')" class="relative cursor-pointer w-24 h-24 bg-gray-600 hover:bg-gray-500 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
-                    <span class="text-4xl mb-1">⚡</span>
-                    <span class="text-xs font-bold uppercase">Kakashi</span>
+                <div onclick="selectChar('Kakashi')" class="relative cursor-pointer w-14 h-14 bg-gray-600 hover:bg-gray-500 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
+                    <span class="text-2xl mb-1">⚡</span>
+                    <span class="text-[10px] font-bold uppercase">Kakashi</span>
                     <div id="p1-indicator-Kakashi" class="p1-indicator absolute top-0 left-0 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-br shadow-md hidden">P1</div>
                     <div id="p2-indicator-Kakashi" class="p2-indicator absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-bl shadow-md hidden">P2</div>
                 </div>
                 <!-- Hinata -->
-                <div onclick="selectChar('Hinata')" class="relative cursor-pointer w-24 h-24 bg-purple-400 hover:bg-purple-300 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
-                    <span class="text-4xl mb-1">👁️</span>
-                    <span class="text-xs font-bold uppercase">Hinata</span>
+                <div onclick="selectChar('Hinata')" class="relative cursor-pointer w-14 h-14 bg-purple-400 hover:bg-purple-300 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
+                    <span class="text-2xl mb-1">👁️</span>
+                    <span class="text-[10px] font-bold uppercase">Hinata</span>
                     <div id="p1-indicator-Hinata" class="p1-indicator absolute top-0 left-0 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-br shadow-md hidden">P1</div>
                     <div id="p2-indicator-Hinata" class="p2-indicator absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-bl shadow-md hidden">P2</div>
                 </div>
                 <!-- Itachi -->
-                <div onclick="selectChar('Itachi')" class="relative cursor-pointer w-24 h-24 bg-black hover:bg-gray-900 border-2 border-gray-700 hover:border-red-500 rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
-                    <span class="text-4xl mb-1">🌑</span>
-                    <span class="text-xs font-bold uppercase text-red-500">Itachi</span>
+                <div onclick="selectChar('Itachi')" class="relative cursor-pointer w-14 h-14 bg-black hover:bg-gray-900 border-2 border-gray-700 hover:border-red-500 rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
+                    <span class="text-2xl mb-1">🌑</span>
+                    <span class="text-[10px] font-bold uppercase text-red-500">Itachi</span>
                     <div id="p1-indicator-Itachi" class="p1-indicator absolute top-0 left-0 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-br shadow-md hidden">P1</div>
                     <div id="p2-indicator-Itachi" class="p2-indicator absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-bl shadow-md hidden">P2</div>
                 </div>
                 <!-- Madara -->
-                <div onclick="selectChar('Madara')" class="relative cursor-pointer w-24 h-24 bg-red-800 hover:bg-red-700 border-2 border-gray-700 hover:border-red-500 rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
-                    <span class="text-4xl mb-1">⚔️</span>
-                    <span class="text-xs font-bold uppercase text-white">Madara</span>
+                <div onclick="selectChar('Madara')" class="relative cursor-pointer w-14 h-14 bg-red-800 hover:bg-red-700 border-2 border-gray-700 hover:border-red-500 rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
+                    <span class="text-2xl mb-1">⚔️</span>
+                    <span class="text-[10px] font-bold uppercase text-white">Madara</span>
                     <div id="p1-indicator-Madara" class="p1-indicator absolute top-0 left-0 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-br shadow-md hidden">P1</div>
                     <div id="p2-indicator-Madara" class="p2-indicator absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-bl shadow-md hidden">P2</div>
                 </div>
+                <!-- Minato -->
+                <div onclick="selectChar('Minato')" class="relative cursor-pointer w-14 h-14 bg-yellow-400 hover:bg-yellow-300 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
+                    <span class="text-2xl mb-1">⚡</span>
+                    <span class="text-[10px] font-bold uppercase text-black">Minato</span>
+                    <div id="p1-indicator-Minato" class="p1-indicator absolute top-0 left-0 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-br shadow-md hidden">P1</div>
+                    <div id="p2-indicator-Minato" class="p2-indicator absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-bl shadow-md hidden">P2</div>
+                </div>
+                <!-- Obito -->
+                <div onclick="selectChar('Obito')" class="relative cursor-pointer w-14 h-14 bg-indigo-900 hover:bg-indigo-800 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
+                    <span class="text-2xl mb-1">🌀</span>
+                    <span class="text-[10px] font-bold uppercase text-white">Obito</span>
+                    <div id="p1-indicator-Obito" class="p1-indicator absolute top-0 left-0 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-br shadow-md hidden">P1</div>
+                    <div id="p2-indicator-Obito" class="p2-indicator absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-bl shadow-md hidden">P2</div>
+                </div>
+                <!-- Pain -->
+                <div onclick="selectChar('Pain')" class="relative cursor-pointer w-14 h-14 bg-gray-800 hover:bg-gray-700 border-2 border-gray-700 hover:border-orange-500 rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
+                    <span class="text-2xl mb-1">📍</span>
+                    <span class="text-[10px] font-bold uppercase text-orange-500">Pain</span>
+                    <div id="p1-indicator-Pain" class="p1-indicator absolute top-0 left-0 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-br shadow-md hidden">P1</div>
+                    <div id="p2-indicator-Pain" class="p2-indicator absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-bl shadow-md hidden">P2</div>
+                </div>
                 <!-- Random -->
-                <div onclick="selectRandomChar()" class="relative cursor-pointer w-24 h-24 bg-purple-900 hover:bg-purple-800 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
-                    <span class="text-4xl mb-1">?</span>
-                    <span class="text-xs font-bold uppercase">Random</span>
+                <div onclick="selectRandomChar()" class="relative cursor-pointer w-14 h-14 bg-purple-900 hover:bg-purple-800 border-2 border-gray-700 hover:border-white rounded-lg flex flex-col items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
+                    <span class="text-2xl mb-1">?</span>
+                    <span class="text-[10px] font-bold uppercase">Random</span>
                 </div>
             </div>
 
             <!-- Player 2 Preview -->
             <div class="flex flex-col items-center w-1/4 cursor-pointer transition-transform hover:scale-105" onclick="setSelectionMode(2)" id="p2-preview">
                 <div class="text-red-400 font-bold text-2xl mb-2">PLAYER 2</div>
-                <div id="p2-portrait" class="w-40 h-40 bg-blue-600 border-4 border-red-500 rounded-xl flex items-center justify-center mb-4 shadow-lg relative overflow-hidden">
-                    <span class="text-6xl">⚡</span>
+                <div id="p2-portrait" class="w-32 h-32 bg-blue-600 border-4 border-red-500 rounded-xl flex items-center justify-center mb-4 shadow-lg relative overflow-hidden">
+                    <span class="text-5xl">⚡</span>
                 </div>
-                <div id="p2-name" class="text-4xl font-bold text-white tracking-tighter">SASUKE</div>
+                <div id="p2-name" class="text-3xl font-bold text-white tracking-tighter">SASUKE</div>
             </div>
         </div>
 
         <!-- Arena Selection -->
-        <div class="flex flex-col items-center mb-8 w-full">
-            <h2 class="text-gray-400 text-sm uppercase tracking-widest mb-3">Select Arena</h2>
+        <div class="flex flex-col items-center mt-4 w-full">
+            <h2 class="text-gray-400 text-xs uppercase tracking-widest mb-2">Select Arena</h2>
             <div class="flex space-x-4">
-                <button onclick="selectArena('Valley')" id="arena-Valley" class="px-6 py-2 rounded bg-blue-900 border-2 border-blue-500 text-white hover:bg-blue-800 transition-colors selected ring-2 ring-yellow-400">Valley of the End</button>
-                <button onclick="selectArena('Forest')" id="arena-Forest" class="px-6 py-2 rounded bg-green-900 border-2 border-green-500 text-white hover:bg-green-800 transition-colors">Forest of Death</button>
-                <button onclick="selectArena('Leaf')" id="arena-Leaf" class="px-6 py-2 rounded bg-orange-600 border-2 border-orange-400 text-white hover:bg-orange-500 transition-colors">Leaf Village</button>
-            </div>
-        </div>
-
-        <div class="flex space-x-6">
-            <button onclick="startGame('CPU')" class="btn-action bg-yellow-500 text-gray-900 text-2xl hover:bg-yellow-600 min-w-[200px] font-bold shadow-lg transform hover:-translate-y-1 transition-transform">
-                START vs CPU
-            </button>
-            <button onclick="startGame('PVP')" class="btn-action bg-red-600 text-white text-2xl hover:bg-red-700 min-w-[200px] font-bold shadow-lg transform hover:-translate-y-1 transition-transform">
-                START PvP
-            </button>
-            <div class="flex flex-col space-y-2">
-                <button onclick="startBossSelection('Nine Tails')" class="btn-action bg-purple-800 text-white text-xl hover:bg-purple-900 min-w-[200px] font-bold shadow-lg transform hover:-translate-y-1 transition-transform border-2 border-purple-500">
-                    VS NINE TAILS
-                </button>
-                <button onclick="startBossSelection('Ten Tails')" class="btn-action bg-gray-800 text-white text-xl hover:bg-gray-900 min-w-[200px] font-bold shadow-lg transform hover:-translate-y-1 transition-transform border-2 border-gray-500">
-                    VS TEN TAILS
-                </button>
+                <button onclick="selectArena('Valley')" id="arena-Valley" class="px-4 py-1 rounded bg-blue-900 border-2 border-blue-500 text-white hover:bg-blue-800 transition-colors selected ring-2 ring-yellow-400 text-sm">Valley</button>
+                <button onclick="selectArena('Forest')" id="arena-Forest" class="px-4 py-1 rounded bg-green-900 border-2 border-green-500 text-white hover:bg-green-800 transition-colors text-sm">Forest</button>
+                <button onclick="selectArena('Leaf')" id="arena-Leaf" class="px-4 py-1 rounded bg-orange-600 border-2 border-orange-400 text-white hover:bg-orange-500 transition-colors text-sm">Leaf</button>
             </div>
         </div>
         
-        <!-- Team Selection Display (Hidden by default) -->
-        <div id="team-display" class="hidden mt-4 flex space-x-2">
-            <!-- Filled by JS -->
-        </div>
+    <!-- Team Selection Display (Hidden by default) -->
+    <div id="team-display" class="hidden mt-4 flex space-x-2">
+        <!-- Filled by JS -->
+    </div>
     </div>
 
-    <h1 class="text-4xl text-center mb-6 text-yellow-400">STICK HOKAGE: BATTLE ARENA</h1>
-
-    <!-- Team Status Display (Boss Mode) -->
+    <h1 class="text-4xl text-center mb-6 text-yellow-400">STICK HOKAGE: BATTLE ARENA</h1>    <!-- Team Status Display (Boss Mode) -->
     <div id="battle-team-display" class="flex justify-center space-x-2 mb-4 hidden">
         <!-- Filled by JS -->
     </div>
@@ -354,6 +379,12 @@
             'Majestic Destroyer Flame': { cost: 40, damage: 60, ninjutsuMsg: "unleashes MAJESTIC DESTROYER FLAME!" },
             'Perfect Susanoo': { cost: 100, damage: 120, ninjutsuMsg: "summons PERFECT SUSANOO!" },
             'Meteor Drop': { cost: 100, damage: 150, selfDamage: 30, ninjutsuMsg: "summons a METEOR!" },
+            'Flying Raijin': { cost: 40, damage: 60, ninjutsuMsg: "flashes with FLYING RAIJIN!" },
+            'Rasengan Barrage': { cost: 100, damage: 130, ninjutsuMsg: "unleashes RASENGAN BARRAGE!" },
+            'Kamui Strike': { cost: 40, damage: 55, ninjutsuMsg: "phases and STRIKES!" },
+            'Gedo Statue': { cost: 100, damage: 140, ninjutsuMsg: "summons the GEDO STATUE!" },
+            'Almighty Push': { cost: 40, damage: 60, ninjutsuMsg: "blasts with ALMIGHTY PUSH!" },
+            'Planetary Devastation': { cost: 100, damage: 150, ninjutsuMsg: "creates PLANETARY DEVASTATION!" },
             // 3rd Form Moves
             'Six Paths Rasenshuriken': { cost: 100, damage: 150, ninjutsuMsg: "throws a SIX PATHS RASENSHURIKEN!" },
             'Indra\'s Arrow': { cost: 100, damage: 150, ninjutsuMsg: "fires INDRA'S ARROW!" },
@@ -396,7 +427,7 @@
         };
 
         window.selectRandomChar = function() {
-            const chars = ['Naruto', 'Sasuke', 'Rock Lee', 'Gaara', 'Sakura', 'Kakashi', 'Hinata', 'Itachi', 'Madara'];
+            const chars = ['Naruto', 'Sasuke', 'Rock Lee', 'Gaara', 'Sakura', 'Kakashi', 'Hinata', 'Itachi', 'Madara', 'Minato', 'Obito', 'Pain'];
             const randomChar = chars[Math.floor(Math.random() * chars.length)];
             selectChar(randomChar);
         };
@@ -415,7 +446,7 @@
                     const slot = document.createElement('div');
                     slot.className = "w-12 h-12 bg-gray-700 border border-gray-500 rounded flex items-center justify-center text-xl";
                     // Simple icon mapping
-                    const icons = {'Naruto':'🦊','Sasuke':'⚡','Rock Lee':'👊','Gaara':'🏺','Sakura':'🌸','Kakashi':'⚡','Hinata':'👁️','Itachi':'🌑','Madara':'⚔️'};
+                    const icons = {'Naruto':'🦊','Sasuke':'⚡','Rock Lee':'👊','Gaara':'🏺','Sakura':'🌸','Kakashi':'⚡','Hinata':'👁️','Itachi':'🌑','Madara':'⚔️','Minato':'⚡','Obito':'🌀','Pain':'📍'};
                     slot.textContent = icons[charName];
                     teamDisplay.appendChild(slot);
 
@@ -458,7 +489,10 @@
                 'Kakashi': { color: 'bg-gray-600', icon: '⚡' },
                 'Hinata': { color: 'bg-purple-400', icon: '👁️' },
                 'Itachi': { color: 'bg-black', icon: '🌑' },
-                'Madara': { color: 'bg-red-800', icon: '⚔️' }
+                'Madara': { color: 'bg-red-800', icon: '⚔️' },
+                'Minato': { color: 'bg-yellow-400', icon: '⚡' },
+                'Obito': { color: 'bg-indigo-900', icon: '🌀' },
+                'Pain': { color: 'bg-gray-800', icon: '📍' }
             };
             
             // Update P1 Portrait
@@ -1134,6 +1168,9 @@
             else if (player.name === 'Hinata') legColor = '#1f2937'; // Dark pants
             else if (player.name === 'Itachi') legColor = '#1f2937'; // Dark pants
             else if (player.name === 'Madara') legColor = '#1f2937'; // Dark pants
+            else if (player.name === 'Minato') legColor = '#1f2937'; // Dark pants
+            else if (player.name === 'Obito') legColor = '#1f2937'; // Dark pants
+            else if (player.name === 'Pain') legColor = '#1f2937'; // Dark pants
 
             ctx.fillStyle = legColor;
             ctx.strokeStyle = '#1f2937';
@@ -1201,6 +1238,9 @@
             if (player.name === 'Hinata') bodyColor = '#e9d5ff'; // Lavender/Cream hoodie
             if (player.name === 'Itachi') bodyColor = '#000000'; // Akatsuki Cloak
             if (player.name === 'Madara') bodyColor = '#7f1d1d'; // Red Armor
+            if (player.name === 'Minato') bodyColor = '#15803d'; // Green Vest (Standard Jonin)
+            if (player.name === 'Obito') bodyColor = '#312e81'; // Indigo Robe
+            if (player.name === 'Pain') bodyColor = '#000000'; // Akatsuki Cloak
 
             ctx.fillStyle = bodyColor;
             // Torso Rect
@@ -1327,6 +1367,75 @@
                 ctx.lineTo(bodyW/2, -bodyH - limbL + 10);
                 ctx.fill();
             }
+            else if (player.name === 'Minato') {
+                // Flak Jacket (Green)
+                ctx.fillStyle = '#15803d'; 
+                ctx.fillRect(-bodyW/2 - 1, -bodyH - limbL, bodyW + 2, bodyH - 5);
+                // Zipper
+                ctx.fillStyle = '#1f2937';
+                ctx.fillRect(-1, -bodyH - limbL, 2, bodyH - 5);
+                // Pockets
+                ctx.fillStyle = '#166534';
+                ctx.fillRect(-bodyW/2 + 2, -bodyH - limbL + 5, 4, 6);
+                ctx.fillRect(bodyW/2 - 6, -bodyH - limbL + 5, 4, 6);
+                // White Cloak (Back) - drawn behind? No, let's draw it as a cape
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.moveTo(-bodyW/2, -bodyH - limbL);
+                ctx.lineTo(-bodyW/2 - 5, -limbL + 5); // Flare out
+                ctx.lineTo(bodyW/2 + 5, -limbL + 5);
+                ctx.lineTo(bodyW/2, -bodyH - limbL);
+                ctx.fill();
+                // Flames on bottom
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath();
+                ctx.moveTo(-bodyW/2 - 5, -limbL + 5);
+                ctx.lineTo(-bodyW/2, -limbL);
+                ctx.lineTo(-bodyW/2 + 5, -limbL + 5);
+                ctx.lineTo(0, -limbL);
+                ctx.lineTo(bodyW/2 - 5, -limbL + 5);
+                ctx.lineTo(bodyW/2, -limbL);
+                ctx.lineTo(bodyW/2 + 5, -limbL + 5);
+                ctx.fill();
+                // Redraw Vest over cloak
+                ctx.fillStyle = '#15803d'; 
+                ctx.fillRect(-bodyW/2 - 1, -bodyH - limbL, bodyW + 2, bodyH - 5);
+                ctx.fillStyle = '#1f2937';
+                ctx.fillRect(-1, -bodyH - limbL, 2, bodyH - 5);
+            }
+            else if (player.name === 'Obito') {
+                // Long Robe
+                ctx.fillStyle = '#312e81'; // Indigo
+                ctx.fillRect(-bodyW/2 - 1, -bodyH - limbL, bodyW + 2, bodyH + 5);
+                // Collar
+                ctx.fillStyle = '#312e81';
+                ctx.beginPath();
+                ctx.moveTo(-bodyW/2, -bodyH - limbL);
+                ctx.lineTo(-bodyW/2 - 5, -bodyH - limbL - 5);
+                ctx.lineTo(bodyW/2 + 5, -bodyH - limbL - 5);
+                ctx.lineTo(bodyW/2, -bodyH - limbL);
+                ctx.fill();
+                // Belt/Sash
+                ctx.fillStyle = '#1f2937'; // Dark sash
+                ctx.fillRect(-bodyW/2 - 1, -limbL - 10, bodyW + 2, 5);
+            }
+            else if (player.name === 'Pain') {
+                // Akatsuki Cloak (Same as Itachi)
+                ctx.fillStyle = '#ef4444';
+                // Cloud 1
+                ctx.beginPath(); ctx.arc(-5, -bodyH - limbL + 10, 3, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(-2, -bodyH - limbL + 8, 3, 0, Math.PI*2); ctx.fill();
+                // Cloud 2
+                ctx.beginPath(); ctx.arc(5, -bodyH - limbL + 20, 3, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(2, -bodyH - limbL + 22, 3, 0, Math.PI*2); ctx.fill();
+                
+                // Collar
+                ctx.fillStyle = '#000';
+                ctx.fillRect(-bodyW/2, -bodyH - limbL - 5, bodyW, 5);
+                ctx.strokeStyle = '#ef4444'; // Red lining
+                ctx.lineWidth = 1;
+                ctx.strokeRect(-bodyW/2, -bodyH - limbL - 5, bodyW, 5);
+            }
 
 
             // --- Head ---
@@ -1372,7 +1481,7 @@
             }
 
             // Headband
-            if (player.name !== 'Rock Lee' && player.name !== 'Gaara' && player.name !== 'Sakura' && player.name !== 'Kakashi' && player.name !== 'Hinata' && player.name !== 'Itachi') { // Lee wears it on waist, Gaara doesn't wear one usually or on gourd, Sakura wears it as hairband
+            if (player.name !== 'Rock Lee' && player.name !== 'Gaara' && player.name !== 'Sakura' && player.name !== 'Kakashi' && player.name !== 'Hinata' && player.name !== 'Itachi' && player.name !== 'Obito') { // Lee wears it on waist, Gaara doesn't wear one usually or on gourd, Sakura wears it as hairband
                 ctx.fillStyle = '#1f2937'; // Navy band
                 ctx.fillRect(-headSize - 2, -headSize - 10, headSize*2 + 4, 6);
                 ctx.fillStyle = '#d1d5db'; // Metal plate
@@ -1704,6 +1813,71 @@
                 ctx.lineWidth = 0.5;
                 ctx.beginPath(); ctx.arc(4 * direction, -headSize - 1, 1.5, 0, Math.PI*2); ctx.stroke();
             }
+            else if (player.name === 'Minato') {
+                ctx.fillStyle = '#facc15'; // Yellow
+                ctx.beginPath();
+                // Spikes
+                ctx.moveTo(-headSize, -headSize - 8);
+                for(let i=0; i<5; i++) {
+                    ctx.lineTo(-headSize + (i*6), -headSize - 18);
+                    ctx.lineTo(-headSize + (i*6) + 3, -headSize - 8);
+                }
+                // Long side bangs
+                ctx.moveTo(-headSize, -headSize - 5);
+                ctx.lineTo(-headSize - 5, -headSize + 10); // Left
+                ctx.lineTo(-headSize + 2, -headSize);
+                
+                ctx.moveTo(headSize, -headSize - 5);
+                ctx.lineTo(headSize + 5, -headSize + 10); // Right
+                ctx.lineTo(headSize - 2, -headSize);
+                ctx.fill();
+            }
+            else if (player.name === 'Obito') {
+                // White Mask
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(0, -headSize, headSize + 1, 0, Math.PI*2);
+                ctx.fill();
+                // Eye Holes / Pattern
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                // Spiral pattern
+                for(let r=2; r<headSize; r+=3) {
+                    ctx.arc(0, -headSize, r, 0, Math.PI*2);
+                }
+                ctx.stroke();
+                // Eye Holes
+                ctx.fillStyle = '#000';
+                ctx.beginPath(); ctx.arc(4 * direction, -headSize - 2, 2, 0, Math.PI*2); ctx.fill(); // Right eye (Sharingan/Rinnegan)
+                
+                // Rinnegan/Sharingan visible?
+                ctx.fillStyle = '#a855f7'; // Purple
+                ctx.beginPath(); ctx.arc(4 * direction, -headSize - 2, 1.5, 0, Math.PI*2); ctx.fill();
+            }
+            else if (player.name === 'Pain') {
+                ctx.fillStyle = '#f97316'; // Orange hair
+                ctx.beginPath();
+                // Spiky
+                ctx.moveTo(-headSize, -headSize - 5);
+                for(let i=0; i<6; i++) {
+                    ctx.lineTo(-headSize + (i*5), -headSize - 15);
+                    ctx.lineTo(-headSize + (i*5) + 2, -headSize - 5);
+                }
+                ctx.fill();
+                
+                // Rinnegan Eyes
+                ctx.fillStyle = '#a855f7'; // Purple
+                ctx.beginPath(); ctx.arc(4 * direction, -headSize - 1, 2.5, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = '#000'; ctx.lineWidth = 0.5;
+                ctx.beginPath(); ctx.arc(4 * direction, -headSize - 1, 1.5, 0, Math.PI*2); ctx.stroke();
+                
+                // Piercings (Black dots)
+                ctx.fillStyle = '#000';
+                ctx.beginPath(); ctx.arc(0, -headSize + 2, 1, 0, Math.PI*2); ctx.fill(); // Nose
+                ctx.beginPath(); ctx.arc(-5, -headSize + 5, 1, 0, Math.PI*2); ctx.fill(); // Cheek
+                ctx.beginPath(); ctx.arc(5, -headSize + 5, 1, 0, Math.PI*2); ctx.fill(); // Cheek
+            }
 
 
             // --- Arms ---
@@ -1935,6 +2109,58 @@
             drawEye(x - eyeSpacing/2, eyeY);
             drawEye(x + eyeSpacing/2, eyeY);
             
+            ctx.restore();
+        }
+
+        function drawRinneganProjectile(x, y, frame) {
+            ctx.save();
+            
+            const size = 35; // Radius of the projectile
+
+            // Outer Glow to show it's energy
+            ctx.shadowColor = '#a855f7'; // Purple glow
+            ctx.shadowBlur = 20;
+
+            // Main Eye Circle (Rinnegan Base Color - Light Purple/Grey)
+            // Using a gradient to give it a spherical look
+            const grad = ctx.createRadialGradient(x, y, size * 0.3, x, y, size);
+            grad.addColorStop(0, '#e9d5ff'); // Center light
+            grad.addColorStop(1, '#c084fc'); // Edge darker
+            ctx.fillStyle = grad;
+            
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI*2);
+            ctx.fill();
+            
+            // Reset shadow for internal details so lines are crisp
+            ctx.shadowBlur = 0;
+
+            // Rings (The Ripple Pattern)
+            ctx.strokeStyle = '#4c1d95'; // Deep purple/blackish
+            ctx.lineWidth = 2;
+            
+            // Draw concentric rings
+            const ringCount = 5;
+            const spacing = size / (ringCount + 1);
+            
+            for(let i = 1; i <= ringCount; i++) {
+                ctx.beginPath();
+                ctx.arc(x, y, i * spacing, 0, Math.PI*2);
+                ctx.stroke();
+            }
+
+            // Center Pupil
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(x, y, 4, 0, Math.PI*2);
+            ctx.fill();
+
+            // Eye Shine (Reflection)
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.beginPath();
+            ctx.ellipse(x - size*0.4, y - size*0.4, 8, 5, Math.PI/4, 0, Math.PI*2);
+            ctx.fill();
+
             ctx.restore();
         }
 
@@ -2415,6 +2641,8 @@
                             drawBeastBall(currentX, currentY, frame, startX, targetX);
                         } else if (jutsuType === 'Sharingan' || jutsuType === 'Tsukuyomi') {
                             drawSharinganEffect(ctx, W/2, H/2, frame);
+                        } else if (jutsuType === 'Almighty Push') {
+                            drawRinneganProjectile(currentX, currentY, frame);
                         } else if (jutsuType === 'Fireball' || jutsuType === 'Majestic Flame') {
                             drawFireball(currentX, currentY, frame, startX, targetX, jutsuType === 'Majestic Flame');
                         } else if (jutsuType === 'Sand') {
@@ -2511,6 +2739,21 @@
                              ctx.fillStyle = '#ef4444'; ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 20;
                              ctx.beginPath(); ctx.arc(currentX, currentY, 20, 0, Math.PI*2); ctx.fill();
                              ctx.restore();
+                        } else if (jutsuType === 'Flying Raijin') {
+                             // Yellow Flash
+                             ctx.save();
+                             ctx.strokeStyle = '#facc15'; ctx.lineWidth = 5; ctx.shadowColor = '#facc15'; ctx.shadowBlur = 20;
+                             ctx.beginPath(); ctx.moveTo(startX, startY); ctx.lineTo(targetX, targetY); ctx.stroke();
+                             // Kunai
+                             ctx.fillStyle = '#000';
+                             ctx.translate(currentX, currentY);
+                             ctx.rotate(frame * 0.5);
+                             ctx.fillRect(-10, -2, 20, 4);
+                             ctx.restore();
+                        } else if (jutsuType === 'Kamui Strike') {
+                             drawKamuiEffect(targetX, targetY - 30, frame);
+                        } else if (jutsuType === 'Almighty Push') {
+                            drawRinneganProjectile(currentX, currentY, frame);
                         } else {
                             drawChidori(currentX, currentY, frame);
                         }
@@ -2611,6 +2854,15 @@
             if (player.name === 'Madara') {
                 if (player.isSusanoo) return { name: 'Meteor Drop', ...MOVES['Meteor Drop'] };
                 return { name: 'Majestic Flame', ...MOVES['Majestic Destroyer Flame'] };
+            }
+            if (player.name === 'Minato') {
+                return { name: 'Flying Raijin', ...MOVES['Flying Raijin'] };
+            }
+            if (player.name === 'Obito') {
+                return { name: 'Kamui Strike', ...MOVES['Kamui Strike'] };
+            }
+            if (player.name === 'Pain') {
+                return { name: 'Almighty Push', ...MOVES['Almighty Push'] };
             }
             return { name: 'Attack', cost: 999 };
         }
@@ -2770,7 +3022,7 @@
             const p1Ult = getUltimateMove(p1);
             const btnNinjutsuA = document.getElementById('btnNinjutsuA');
             const isAReady = p1.chakra >= p1Ult.cost;
-            btnNinjutsuA.textContent = isAReady ? p1Ult.name : `${p1Ult.name} (${p1Ult.cost})`;
+            btnNinjutsuA.textContent = (p1Ult.name === 'Almighty Push') ? p1Ult.name : (isAReady ? p1Ult.name : `${p1Ult.name} (${p1Ult.cost})`);
             btnNinjutsuA.disabled = !isAReady || gameOver;
             btnNinjutsuA.className = `btn-action w-1/3 ${!isAReady ? 'opacity-50' : ''} ${p1.name === 'Rock Lee' ? 'btn-rocklee' : p1.name === 'Gaara' ? 'btn-gaara' : p1.name === 'Sakura' ? 'btn-sakura' : p1.name === 'Kakashi' ? 'btn-kakashi' : p1.name === 'Hinata' ? 'btn-hinata' : p1.name === 'Sasuke' ? 'bg-blue-600 text-white' : 'btn-ninjutsu'}`;
 
@@ -2786,7 +3038,7 @@
             const p2Ult = getUltimateMove(p2);
             const btnNinjutsuB = document.getElementById('btnNinjutsuB');
             const isBReady = p2.chakra >= p2Ult.cost;
-            btnNinjutsuB.textContent = isBReady ? p2Ult.name : `${p2Ult.name} (${p2Ult.cost})`;
+            btnNinjutsuB.textContent = (p2Ult.name === 'Almighty Push') ? p2Ult.name : (isBReady ? p2Ult.name : `${p2Ult.name} (${p2Ult.cost})`);
             btnNinjutsuB.disabled = !isBReady || gameOver;
             btnNinjutsuB.className = `btn-action w-1/3 ${!isBReady ? 'opacity-50' : ''} ${p2.name === 'Rock Lee' ? 'btn-rocklee' : p2.name === 'Gaara' ? 'btn-gaara' : p2.name === 'Sakura' ? 'btn-sakura' : p2.name === 'Kakashi' ? 'btn-kakashi' : p2.name === 'Hinata' ? 'btn-hinata' : p2.name === 'Sasuke' ? 'bg-blue-600 text-white' : 'btn-ninjutsu'}`;
 
@@ -2809,11 +3061,20 @@
                 const restartBtn = document.createElement('button');
                 restartBtn.id = 'btnRestart';
                 restartBtn.className = 'btn-action bg-yellow-500 hover:bg-yellow-600 text-gray-900 mt-4 mx-auto w-full max-w-sm font-bold';
-                restartBtn.textContent = 'Back to Menu';
-                restartBtn.onclick = () => {
-                    document.getElementById('startOverlay').classList.remove('hidden');
-                    restartBtn.remove();
-                };
+                
+                if (gameState.mode === 'BOSS') {
+                    restartBtn.textContent = 'Back to Menu';
+                    restartBtn.onclick = () => {
+                        document.getElementById('startOverlay').classList.remove('hidden');
+                        restartBtn.remove();
+                    };
+                } else {
+                    restartBtn.textContent = 'Back to Menu';
+                    restartBtn.onclick = () => {
+                        document.getElementById('startOverlay').classList.remove('hidden');
+                        restartBtn.remove();
+                    };
+                }
                 document.getElementById('controls').appendChild(restartBtn);
             }
         }
@@ -2983,6 +3244,7 @@
                         if (attacker.isSusanoo) jutsuType = 'Tsukuyomi';
                         else jutsuType = 'Fireball';
                     }
+                    else if (attacker.name === 'Pain') jutsuType = 'Almighty Push';
                     
                     await animateNinjutsu(attacker, target, jutsuType);
                 }
@@ -3177,9 +3439,6 @@
             }
         }
 
-
-
-        // Boss Health Bar (Top of Screen)
         function drawBossHealthBar(ctx, boss) {
             const barWidth = 300;
             const barHeight = 20;
