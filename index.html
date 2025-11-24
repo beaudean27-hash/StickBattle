@@ -381,7 +381,7 @@
             'Meteor Drop': { cost: 100, damage: 150, selfDamage: 30, ninjutsuMsg: "summons a METEOR!" },
             'Flying Raijin': { cost: 40, damage: 60, ninjutsuMsg: "flashes with FLYING RAIJIN!" },
             'Rasengan Barrage': { cost: 100, damage: 130, ninjutsuMsg: "unleashes RASENGAN BARRAGE!" },
-            'Kamui Strike': { cost: 40, damage: 55, ninjutsuMsg: "phases and STRIKES!" },
+            'Kamui Strike': { cost: 45, damage: 50, ninjutsuMsg: "phases and STRIKES!" },
             'Gedo Statue': { cost: 100, damage: 140, ninjutsuMsg: "summons the GEDO STATUE!" },
             'Almighty Push': { cost: 40, damage: 60, ninjutsuMsg: "blasts with ALMIGHTY PUSH!" },
             'Planetary Devastation': { cost: 100, damage: 150, ninjutsuMsg: "creates PLANETARY DEVASTATION!" },
@@ -1976,6 +1976,25 @@
             ctx.restore();
         }
 
+        function drawExplosion(ctx, effect) {
+            const { x, y, frame } = effect;
+            const maxRadius = 50; 
+            const duration = 20; 
+            const progress = frame / duration;
+            
+            ctx.save();
+            // Core
+            ctx.fillStyle = `rgba(255, 200, 0, ${1 - progress})`; 
+            ctx.beginPath(); ctx.arc(x, y, maxRadius * progress, 0, Math.PI * 2); ctx.fill();
+            
+            // Outer
+            ctx.strokeStyle = `rgba(255, 69, 0, ${1 - progress})`;
+            ctx.lineWidth = 5;
+            ctx.beginPath(); ctx.arc(x, y, maxRadius * progress * 1.2, 0, Math.PI * 2); ctx.stroke();
+            
+            ctx.restore();
+        }
+
         function drawChakraFocus(ctx, effect) {
             const { x, y, frame } = effect;
             const maxRadius = 30; const duration = 40;
@@ -2123,7 +2142,7 @@
 
             // Main Eye Circle (Rinnegan Base Color - Light Purple/Grey)
             // Using a gradient to give it a spherical look
-            const grad = ctx.createRadialGradient(x, y, size * 0.3, x, y, size);
+            const grad = ctx.createRadialGradient(x, y, 5 * size, x, y, 30 * size);
             grad.addColorStop(0, '#e9d5ff'); // Center light
             grad.addColorStop(1, '#c084fc'); // Edge darker
             ctx.fillStyle = grad;
@@ -2575,6 +2594,8 @@
                     if (effect.frame < 8) { drawTaijutsuHit(ctx, effect); effect.frame++; return true; }
                 } else if (effect.type === 'ChakraFocus') {
                     if (effect.frame < 40) { drawChakraFocus(ctx, effect); effect.frame++; return true; }
+                } else if (effect.type === 'Explosion') {
+                    if (effect.frame < 20) { drawExplosion(ctx, effect); effect.frame++; return true; }
                 }
                 return false;
             });
@@ -2617,7 +2638,104 @@
             });
         }
 
+        function animateKamuiStrike(attacker, target) {
+            const startX = attacker.x;
+            const startY = attacker.y;
+            const targetX = target.x;
+            const targetY = target.y;
+            const isPlayerA = attacker === gameState.playerA;
+            const direction = isPlayerA ? 1 : -1;
+            
+            const warpX = (target === gameState.playerB) ? targetX + 60 : targetX - 60;
+
+            return new Promise(resolve => {
+                let frame = 0;
+                
+                function step() {
+                    frame++;
+                    drawCanvasContent();
+                    
+                    // Phase 1: Disappear into Portal (0-30)
+                    if (frame < 30) {
+                        const portalX = startX + (40 * direction);
+                        drawKamuiEffect(portalX, startY - 30, frame);
+                        
+                        if (frame < 20) {
+                             attacker.x += 1 * direction;
+                        }
+                        if (frame === 20) {
+                            attacker.x = -1000; // Hide offscreen
+                        }
+                    }
+                    
+                    // Phase 2: Appear behind and Punch (30-70)
+                    else if (frame < 70) {
+                        const portalX = warpX;
+                        drawKamuiEffect(portalX, targetY - 30, frame - 30);
+                        
+                        if (frame === 30) {
+                            attacker.x = warpX; // Teleport
+                            attacker.pose = 'punching'; 
+                        }
+                        
+                        if (frame > 30 && frame < 45) {
+                            // Walk out / Dash to target
+                            attacker.x -= 2 * direction; 
+                        }
+                        
+                        if (frame === 45) {
+                            // Impact
+                            gameState.effects.push({ type: 'Explosion', x: targetX, y: targetY - 30, frame: 0 });
+                            gameState.screenShake = 10;
+                        }
+                    }
+                    
+                    // Phase 3: Return into Portal (70-100)
+                    else if (frame < 100) {
+                         const portalX = warpX;
+                         drawKamuiEffect(portalX, targetY - 30, frame - 70);
+                         
+                         if (frame === 70) {
+                             attacker.pose = 'idle';
+                         }
+
+                         if (frame > 70 && frame < 85) {
+                             attacker.x += 2 * direction; // Walk back into portal
+                         }
+                         if (frame === 85) {
+                             attacker.x = -1000; // Hide
+                         }
+                    }
+                    
+                    // Phase 4: Reappear at start (100-130)
+                    else if (frame < 130) {
+                        const portalX = startX + (40 * direction);
+                        drawKamuiEffect(portalX, startY - 30, frame - 100);
+                        
+                        if (frame === 100) {
+                            attacker.x = startX + (40 * direction);
+                            attacker.pose = 'idle';
+                        }
+                        if (frame > 100) {
+                            attacker.x -= 1 * direction; // Walk out to start pos
+                        }
+                    }
+                    else {
+                        attacker.x = startX;
+                        resolve();
+                        return;
+                    }
+                    
+                    requestAnimationFrame(step);
+                }
+                step();
+            });
+        }
+
         function animateNinjutsu(attacker, target, jutsuType) {
+            if (jutsuType === 'Kamui Strike') {
+                return animateKamuiStrike(attacker, target);
+            }
             const offsetX = (attacker === gameState.playerA) ? CHAR_SIZE * 0.7 : -CHAR_SIZE * 0.7;
             const startX = attacker.x + offsetX;
             const startY = attacker.y - 30;
@@ -2750,8 +2868,6 @@
                              ctx.rotate(frame * 0.5);
                              ctx.fillRect(-10, -2, 20, 4);
                              ctx.restore();
-                        } else if (jutsuType === 'Kamui Strike') {
-                             drawKamuiEffect(targetX, targetY - 30, frame);
                         } else if (jutsuType === 'Almighty Push') {
                             drawRinneganProjectile(currentX, currentY, frame);
                         } else {
@@ -3199,6 +3315,10 @@
                 let damage = move.damage; 
                 let isCrit = false;
 
+                if (move.name === 'Kamui Strike') {
+                    damage = Math.floor(Math.random() * (70 - 50 + 1)) + 50;
+                }
+
                 if (isMiss) {
                     damage = 0;
                     msg = `${attacker.name} ${move.ninjutsuMsg} BUT MISSED!`;
@@ -3245,6 +3365,7 @@
                         else jutsuType = 'Fireball';
                     }
                     else if (attacker.name === 'Pain') jutsuType = 'Almighty Push';
+                    else if (attacker.name === 'Obito') jutsuType = 'Kamui Strike';
                     
                     await animateNinjutsu(attacker, target, jutsuType);
                 }
@@ -3486,5 +3607,8 @@
         gameLoop(0);
     })();
     </script>
+    <div id="version-display" class="fixed bottom-1 right-1 text-[10px] text-gray-500 font-mono opacity-50 pointer-events-none select-none">
+        Version 1.0.1
+    </div>
 </body>
 </html>
