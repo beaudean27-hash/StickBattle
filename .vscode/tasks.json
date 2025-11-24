@@ -1,0 +1,53 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "git push",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"push",
+				"origin",
+				"main"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "git pull",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"pull",
+				"origin",
+				"main",
+				"--no-edit"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "git commit merge",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"commit",
+				"--no-edit"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "git push final",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"push",
+				"origin",
+				"main"
+			],
+			"isBackground": false,
+			"group": "build"
+		}
+	]
+}

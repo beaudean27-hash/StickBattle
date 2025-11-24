@@ -384,6 +384,7 @@
             'Kamui Strike': { cost: 45, damage: 50, ninjutsuMsg: "phases and STRIKES!" },
             'Gedo Statue': { cost: 100, damage: 140, ninjutsuMsg: "summons the GEDO STATUE!" },
             'Almighty Push': { cost: 40, damage: 60, ninjutsuMsg: "blasts with ALMIGHTY PUSH!" },
+            'Thunder Strike': { cost: 100, damage: 100, ninjutsuMsg: "calls down a THUNDER STRIKE!" },
             'Planetary Devastation': { cost: 100, damage: 150, ninjutsuMsg: "creates PLANETARY DEVASTATION!" },
             // 3rd Form Moves
             'Six Paths Rasenshuriken': { cost: 100, damage: 150, ninjutsuMsg: "throws a SIX PATHS RASENSHURIKEN!" },
@@ -1831,6 +1832,18 @@
                 ctx.lineTo(headSize + 5, -headSize + 10); // Right
                 ctx.lineTo(headSize - 2, -headSize);
                 ctx.fill();
+
+                if (player.isSageMode) {
+                    // Sage Mode Eyes (Orange pigmentation)
+                    ctx.fillStyle = '#f97316'; // Orange
+                    ctx.beginPath();
+                    ctx.arc(4 * direction, -headSize - 1, 4, 0, Math.PI*2); // Eye shadow
+                    ctx.fill();
+                    
+                    // Pupil (Horizontal bar for Toad Sage)
+                    ctx.fillStyle = '#000';
+                    ctx.fillRect((4 * direction) - 2, -headSize - 1.5, 4, 1);
+                }
             }
             else if (player.name === 'Obito') {
                 // White Mask
@@ -2870,6 +2883,8 @@
                              ctx.restore();
                         } else if (jutsuType === 'Almighty Push') {
                             drawRinneganProjectile(currentX, currentY, frame);
+                        } else if (jutsuType === 'Thunder Strike') {
+                            drawThunderStrike(targetX, targetY, frame);
                         } else {
                             drawChidori(currentX, currentY, frame);
                         }
@@ -2972,6 +2987,7 @@
                 return { name: 'Majestic Flame', ...MOVES['Majestic Destroyer Flame'] };
             }
             if (player.name === 'Minato') {
+                if (player.isSageMode) return { name: 'Thunder Strike', ...MOVES['Thunder Strike'] };
                 return { name: 'Flying Raijin', ...MOVES['Flying Raijin'] };
             }
             if (player.name === 'Obito') {
@@ -3082,508 +3098,64 @@
             ctx.restore();
         }
 
-        function updateUI() {
-            const p1 = gameState.playerA;
-            document.getElementById('nameA').textContent = `${p1.name} (P1)`;
-            document.getElementById('nameA').className = `text-xl mb-2 ${p1.name === 'Naruto' ? 'text-orange-400' : p1.name === 'Sasuke' ? 'text-blue-400' : 'text-green-500'}`;
-            document.getElementById('hpA').textContent = p1.hp;
-            document.getElementById('maxHpA').textContent = p1.maxHp;
-            document.getElementById('chakraA').textContent = p1.chakra;
-            document.getElementById('maxChakraA').textContent = p1.maxChakra;
-            document.getElementById('healthBarA').style.width = `${(p1.hp / p1.maxHp) * 100}%`;
-            document.getElementById('chakraBarA').style.width = `${(p1.chakra / p1.maxChakra) * 100}%`;
+        function drawThunderStrike(x, y, frame) {
+            ctx.save();
+            
+            // Darken sky
+            ctx.fillStyle = `rgba(0, 0, 0, ${Math.min(0.5, frame/10)})`;
+            ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-            const p2 = gameState.playerB;
-            document.getElementById('nameB').textContent = `${p2.name} (P2)`;
-            document.getElementById('nameB').className = `text-xl mb-2 ${p2.name === 'Naruto' ? 'text-orange-400' : p2.name === 'Sasuke' ? 'text-blue-400' : 'text-green-500'}`;
-            document.getElementById('hpB').textContent = p2.hp;
-            document.getElementById('maxHpB').textContent = p2.maxHp;
-            document.getElementById('chakraB').textContent = p2.chakra;
-            document.getElementById('maxChakraB').textContent = p2.maxChakra;
-            document.getElementById('healthBarB').style.width = `${(p2.hp / p2.maxHp) * 100}%`;
-            document.getElementById('chakraBarB').style.width = `${(p2.chakra / p2.maxChakra) * 100}%`;
-
-            // --- Boss Mode Team Display ---
-            const teamDisplay = document.getElementById('battle-team-display');
-            if (gameState.mode === 'BOSS') {
-                teamDisplay.classList.remove('hidden');
-                teamDisplay.innerHTML = '';
-                const icons = {'Naruto':'🦊','Sasuke':'⚡','Rock Lee':'👊','Gaara':'🏺','Sakura':'🌸','Kakashi':'⚡','Hinata':'👁️','Itachi':'🌑'};
-                
-                gameState.teamA.forEach((member, index) => {
-                    const slot = document.createElement('div');
-                    slot.className = `w-10 h-10 bg-gray-700 border ${index === gameState.teamIndex ? 'border-yellow-400' : 'border-gray-500'} rounded flex items-center justify-center text-lg relative`;
-                    slot.textContent = icons[member.name];
-                    
-                    if (member.hp <= 0) {
-                        const xMark = document.createElement('div');
-                        xMark.className = "absolute inset-0 flex items-center justify-center text-red-600 font-bold text-2xl";
-                        xMark.textContent = "X";
-                        slot.appendChild(xMark);
-                        slot.classList.add('opacity-50');
-                    }
-                    teamDisplay.appendChild(slot);
-                });
-            } else {
-                teamDisplay.classList.add('hidden');
+            const progress = frame / 30;
+            
+            // Warning circle on ground
+            if (frame < 10) {
+                ctx.strokeStyle = '#facc15';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(x, y, 40 * (frame/10), 0, Math.PI*2);
+                ctx.stroke();
             }
 
-            const isA = gameState.turn === 'A';
-            const gameOver = checkWinCondition();
-
-            const controlsA = document.getElementById('controlsA');
-            controlsA.style.pointerEvents = isA && !gameOver ? 'auto' : 'none';
-            controlsA.style.opacity = isA && !gameOver ? '1' : '0.5';
-
-            const p1Ult = getUltimateMove(p1);
-            const btnNinjutsuA = document.getElementById('btnNinjutsuA');
-            const isAReady = p1.chakra >= p1Ult.cost;
-            btnNinjutsuA.textContent = (p1Ult.name === 'Almighty Push') ? p1Ult.name : (isAReady ? p1Ult.name : `${p1Ult.name} (${p1Ult.cost})`);
-            btnNinjutsuA.disabled = !isAReady || gameOver;
-            btnNinjutsuA.className = `btn-action w-1/3 ${!isAReady ? 'opacity-50' : ''} ${p1.name === 'Rock Lee' ? 'btn-rocklee' : p1.name === 'Gaara' ? 'btn-gaara' : p1.name === 'Sakura' ? 'btn-sakura' : p1.name === 'Kakashi' ? 'btn-kakashi' : p1.name === 'Hinata' ? 'btn-hinata' : p1.name === 'Sasuke' ? 'bg-blue-600 text-white' : 'btn-ninjutsu'}`;
-
-            const controlsB = document.getElementById('controlsB');
-            if (gameState.mode === 'CPU' || gameState.mode === 'BOSS') {
-                controlsB.style.display = 'none';
-            } else {
-                controlsB.style.display = 'flex';
-                controlsB.style.pointerEvents = !isA && !gameOver ? 'auto' : 'none';
-                controlsB.style.opacity = !isA && !gameOver ? '1' : '0.5';
-            }
-
-            const p2Ult = getUltimateMove(p2);
-            const btnNinjutsuB = document.getElementById('btnNinjutsuB');
-            const isBReady = p2.chakra >= p2Ult.cost;
-            btnNinjutsuB.textContent = (p2Ult.name === 'Almighty Push') ? p2Ult.name : (isBReady ? p2Ult.name : `${p2Ult.name} (${p2Ult.cost})`);
-            btnNinjutsuB.disabled = !isBReady || gameOver;
-            btnNinjutsuB.className = `btn-action w-1/3 ${!isBReady ? 'opacity-50' : ''} ${p2.name === 'Rock Lee' ? 'btn-rocklee' : p2.name === 'Gaara' ? 'btn-gaara' : p2.name === 'Sakura' ? 'btn-sakura' : p2.name === 'Kakashi' ? 'btn-kakashi' : p2.name === 'Hinata' ? 'btn-hinata' : p2.name === 'Sasuke' ? 'bg-blue-600 text-white' : 'btn-ninjutsu'}`;
-
-            document.getElementById('messageBox').textContent = gameState.message || (gameState.turn === 'A' ? `${p1.name}'s Turn.` : `${p2.name}'s Turn.`);
-        }
-
-        function checkWinCondition() {
-            if (gameState.playerA.hp <= 0) return true;
-            if (gameState.playerB.hp <= 0) return true;
-            return false;
-        }
-
-        function endGame(winnerMsg) {
-            gameState.message = `GAME OVER! ${winnerMsg}`;
-            document.getElementById('messageBox').textContent = gameState.message;
-            document.getElementById('controlsA').style.pointerEvents = 'none';
-            document.getElementById('controlsB').style.pointerEvents = 'none';
-
-            if (!document.getElementById('btnRestart')) {
-                const restartBtn = document.createElement('button');
-                restartBtn.id = 'btnRestart';
-                restartBtn.className = 'btn-action bg-yellow-500 hover:bg-yellow-600 text-gray-900 mt-4 mx-auto w-full max-w-sm font-bold';
+            // Main Bolt
+            if (frame >= 10 && frame < 25) {
+                ctx.shadowColor = '#fef08a';
+                ctx.shadowBlur = 30;
+                ctx.strokeStyle = '#fef08a'; // Light yellow
+                ctx.lineWidth = 40 + Math.random() * 20;
+                ctx.lineCap = 'butt';
                 
-                if (gameState.mode === 'BOSS') {
-                    restartBtn.textContent = 'Back to Menu';
-                    restartBtn.onclick = () => {
-                        document.getElementById('startOverlay').classList.remove('hidden');
-                        restartBtn.remove();
-                    };
-                } else {
-                    restartBtn.textContent = 'Back to Menu';
-                    restartBtn.onclick = () => {
-                        document.getElementById('startOverlay').classList.remove('hidden');
-                        restartBtn.remove();
-                    };
+                ctx.beginPath();
+                ctx.moveTo(x, -100);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                
+                // Inner white core
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 15;
+                ctx.stroke();
+                
+                // Side branches
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = '#facc15';
+                for(let i=0; i<5; i++) {
+                    const startY = Math.random() * y;
+                    ctx.beginPath();
+                    ctx.moveTo(x, startY);
+                    ctx.lineTo(x + (Math.random()-0.5)*100, startY + 50);
+                    ctx.stroke();
                 }
-                document.getElementById('controls').appendChild(restartBtn);
-            }
-        }
-
-        window.resetGame = function() {
-            if (gameState.mode === 'BOSS') {
-                // Boss Mode Reset
-                gameState.teamIndex = 0;
-                gameState.teamA.forEach(p => {
-                    p.hp = p.maxHp; p.chakra = p.maxChakra; p.pose = 'idle';
-                    p.isCurseMark = false; p.isThreeTails = false; p.isNinthGate = false; p.isShukaku = false; p.is100Healings = false; p.isMangekyou = false; p.isTwinLion = false; p.isSusanoo = false;
-                });
-                gameState.playerA = gameState.teamA[0];
-                gameState.playerA.x = W * 0.2; gameState.playerA.y = GROUND_Y;
-                
-                let bossHp = 1000;
-                if (selectedBoss === 'Ten Tails') bossHp = 2000;
-                
-                gameState.playerB = { hp: bossHp, maxHp: bossHp, chakra: 1000, maxChakra: 1000, x: W * 0.7, y: GROUND_Y, color: '#f97316', name: selectedBoss, pose: 'idle' };
-            } else {
-                // Normal Reset
-                const p1Hp = p1Selection === 'Madara' ? 300 : 100;
-                const p2Hp = p2Selection === 'Madara' ? 300 : 100;
-                gameState.playerA = { hp: p1Hp, maxHp: p1Hp, chakra: 50, maxChakra: 50, x: W * 0.2, y: GROUND_Y, color: '#000000', name: p1Selection, pose: 'idle', isCurseMark: false, isThreeTails: false, isNinthGate: false, isShukaku: false, is100Healings: false, isMangekyou: false, isTwinLion: false, isSusanoo: false };
-                gameState.playerB = { hp: p2Hp, maxHp: p2Hp, chakra: 50, maxChakra: 50, x: W * 0.8, y: GROUND_Y, color: '#000000', name: p2Selection, pose: 'idle', isCurseMark: false, isThreeTails: false, isNinthGate: false, isShukaku: false, is100Healings: false, isMangekyou: false, isTwinLion: false, isSusanoo: false };
             }
             
-            gameState.turn = 'A';
-            gameState.isAnimating = false;
-            gameState.effects = [];
-            gameState.floatingTexts = [];
-            gameState.waterfallParticles = [];
-            gameState.message = `FIGHT! ${gameState.playerA.name} vs ${gameState.playerB.name}`;
-            const restartBtn = document.getElementById('btnRestart');
-            if (restartBtn) restartBtn.remove();
-            updateUI();
-        }
-
-        window.handleAction = async function(attackerId, actionType, bossMoveName) {
-            if (gameState.isAnimating || (checkWinCondition() && gameState.mode !== 'BOSS')) return; // Allow if boss mode for swapping check
-            if (checkWinCondition() && gameState.mode === 'BOSS' && gameState.playerA.hp > 0 && gameState.playerB.hp > 0) return; // Only block if game really over
-
-            gameState.isAnimating = true;
-
-            const attacker = attackerId === 'A' ? gameState.playerA : gameState.playerB;
-            const target = attackerId === 'A' ? gameState.playerB : gameState.playerA;
-            const size = CHAR_SIZE; // Use the defined constant
-            
-            let move;
-            let msg = "";
-
-            if (actionType === 'BossMove') {
-                move = MOVES[bossMoveName];
-                let damage = move.damage;
-                msg = `${attacker.name} ${move.msg || move.ninjutsuMsg}`;
-                
-                // Boss always hits for now, maybe add dodge chance later
-                target.hp = clamp(target.hp - damage, 0, target.maxHp);
-                spawnFloatingText(target.x, target.y - 60, `-${damage}`, '#ef4444');
-
-                await animateNinjutsu(attacker, target, bossMoveName);
-
-            } else if (actionType === 'Taijutsu') {
-                move = MOVES.Taijutsu;
-                let damage = move.damage; 
-                
-                if (attacker.name === 'Rock Lee') {
-                    damage = Math.floor(damage * 1.25); 
-                }
-
-                let missChance = 0.25;
-                if (target.name === 'Rock Lee' && target.isNinthGate) missChance = 0.50;
-                if (gameState.mode === 'BOSS' && target === gameState.playerB) missChance = 0;
-                let isMiss = Math.random() < missChance;
-                let isCrit = false;
-
-                if (isMiss) {
-                    damage = 0;
-                    msg = `${attacker.name} ${move.msg} BUT MISSED!`;
-                } else {
-                    if (Math.random() < 0.20) {
-                        isCrit = true; damage = Math.floor(damage * 1.5); 
-                        msg = `${attacker.name} ${move.msg} CRITICAL HIT!`;
-                    } else {
-                        msg = `${attacker.name} ${move.msg}`;
-                    }
-                }
-                
-                target.hp = clamp(target.hp - damage, 0, target.maxHp);
-                attacker.pose = 'kicking';
-                await animateTaijutsu(attacker, target); 
-                
-                if (isMiss) {
-                    spawnFloatingText(target.x, target.y - 60, "MISS", '#9ca3af', true);
-                } else {
-                    spawnFloatingText(target.x, target.y - 60, `-${damage}`, '#ef4444', isCrit);
-                    if(isCrit) spawnFloatingText(target.x, target.y - 90, `CRITICAL!`, '#fcd34d', true);
-                }
-                attacker.pose = 'idle';
-
-            } else if (actionType === 'Chakra') {
-                move = MOVES.Chakra;
-                const hpGain = Math.floor(Math.random() * 11) + 5;
-                attacker.chakra = clamp(attacker.chakra + move.chakraGain, 0, attacker.maxChakra);
-                attacker.hp = clamp(attacker.hp + hpGain, 0, attacker.maxHp);
-                msg = `${attacker.name} ${move.msg}`;
-                gameState.effects.push({ type: 'ChakraFocus', x: attacker.x, y: (attacker.y - size * 2) - size, frame: 0 });
-                spawnFloatingText(attacker.x, attacker.y - 60, `+${hpGain} HP`, '#10b981');
-            } else if (actionType === 'Ninjutsu') {
-                const ultMove = getUltimateMove(attacker);
-                move = ultMove; 
-
-                if (attacker.chakra < move.cost) {
-                    gameState.isAnimating = false;
-                    updateUI(); return;
-                }
-
-                let missChance = 0.25;
-                if (target.name === 'Rock Lee' && target.isNinthGate) missChance = 0.50;
-                if (gameState.mode === 'BOSS' && target === gameState.playerB) missChance = 0;
-                let isMiss = Math.random() < missChance;
-                let damage = move.damage; 
-                let isCrit = false;
-
-                if (move.name === 'Kamui Strike') {
-                    damage = Math.floor(Math.random() * (70 - 50 + 1)) + 50;
-                }
-
-                if (isMiss) {
-                    damage = 0;
-                    msg = `${attacker.name} ${move.ninjutsuMsg} BUT MISSED!`;
-                } else {
-                    if (Math.random() < 0.20) {
-                        isCrit = true; damage = Math.floor(damage * 1.5); 
-                        msg = `${attacker.name} ${move.ninjutsuMsg} CRITICAL!`;
-                    } else {
-                        msg = `${attacker.name} ${move.ninjutsuMsg}`;
-                    }
-                }
-
-                attacker.chakra -= move.cost;
-                if (move.selfDamage) {
-                    attacker.hp = clamp(attacker.hp - move.selfDamage, 0, attacker.maxHp);
-                    spawnFloatingText(attacker.x, attacker.y - 60, `-${move.selfDamage} (Self)`, '#ef4444');
-                }
-                if (move.heal) {
-                    attacker.hp = clamp(attacker.hp + move.heal, 0, attacker.maxHp);
-                    spawnFloatingText(attacker.x, attacker.y - 90, `+${move.heal} HP`, '#10b981');
-                }
-
-                target.hp = clamp(target.hp - damage, 0, target.maxHp);
-                
-                if (attacker.name === 'Rock Lee' || attacker.name === 'Sakura' || (attacker.name === 'Hinata' && attacker.isTwinLion)) {
-                    attacker.pose = 'kicking';
-                    await animateTaijutsu(attacker, target, true);
-                    attacker.pose = 'idle';
-                } else {
-                    let jutsuType = 'Chidori';
-                    if (attacker.name === 'Naruto') {
-                        if (attacker.isThreeTails) jutsuType = 'Beast Ball';
-                        else jutsuType = 'Rasengan';
-                    }
-                    else if (attacker.name === 'Sasuke' && attacker.isCurseMark) jutsuType = 'Sharingan';
-                    else if (attacker.name === 'Gaara') jutsuType = 'Sand';
-                    else if (attacker.name === 'Kakashi') {
-                        if (attacker.isMangekyou) jutsuType = 'Kamui';
-                        else jutsuType = 'Lightning Blade';
-                    }
-                    else if (attacker.name === 'Hinata') jutsuType = '8 Trigrams';
-                    else if (attacker.name === 'Itachi') {
-                        if (attacker.isSusanoo) jutsuType = 'Tsukuyomi';
-                        else jutsuType = 'Fireball';
-                    }
-                    else if (attacker.name === 'Pain') jutsuType = 'Almighty Push';
-                    else if (attacker.name === 'Obito') jutsuType = 'Kamui Strike';
-                    
-                    await animateNinjutsu(attacker, target, jutsuType);
-                }
-
-                if (isMiss) {
-                    spawnFloatingText(target.x, target.y - 60, "MISS", '#9ca3af', true);
-                } else {
-                    spawnFloatingText(target.x, target.y - 60, `-${damage}`, '#3b82f6', isCrit);
-                    if(isCrit) spawnFloatingText(target.x, target.y - 90, `CRITICAL!`, '#fcd34d', true);
-                }
+            // Impact
+            if (frame >= 10) {
+                const impactFrame = frame - 10;
+                ctx.fillStyle = `rgba(253, 224, 71, ${1 - impactFrame/20})`;
+                ctx.beginPath();
+                ctx.arc(x, y, 30 + impactFrame * 5, 0, Math.PI*2);
+                ctx.fill();
             }
 
-            gameState.message = msg;
-            
-            tryTransformation(target);
-
-            updateUI();
-
-            if (checkWinCondition()) {
-                if(gameState.playerA.hp <= 0) { 
-                    if (gameState.mode === 'BOSS' && gameState.teamIndex < gameState.teamA.length - 1) {
-                        // Swap Teammate
-                        gameState.teamIndex++;
-                        gameState.playerA = gameState.teamA[gameState.teamIndex];
-                        gameState.playerA.x = W * 0.2; 
-                        gameState.playerA.y = GROUND_Y;
-                        gameState.message = `${gameState.playerA.name} ENTERS THE BATTLE!`;
-                        gameState.turn = 'A'; // Player gets to move first when entering? Or Boss continues? Let's give player turn.
-                        updateUI();
-                        gameState.isAnimating = false;
-                        return;
-                    }
-                    gameState.playerA.pose = 'defeated'; endGame(`${gameState.playerB.name} Wins!`); 
-                }
-                else { gameState.playerB.pose = 'defeated'; endGame(`${gameState.playerA.name} Wins!`); }
-                gameState.isAnimating = false;
-                return;
-            }
-
-            setTimeout(() => {
-                gameState.turn = attackerId === 'A' ? 'B' : 'A';
-                gameState.message = null; 
-                updateUI();
-                gameState.isAnimating = false;
-                
-                if (gameState.turn === 'B' && (gameState.mode === 'CPU' || gameState.mode === 'BOSS')) {
-                    setTimeout(cpuAI, 800);
-                }
-            }, (actionType === 'Ninjutsu' || actionType === 'Taijutsu' || actionType === 'BossMove') ? 800 : 400); 
-        }
-
-        function tryTransformation(target) {
-            if (target.hp > 0) return;
-            
-            // 100% Chance for transformation now
-            
-            let transformed = false;
-            let msg = "";
-            let floatText = "";
-            let color = "";
-            let newHp = 200;
-
-            // --- 3rd Form Upgrades (From 2nd Form) ---
-            if (target.name === 'Sasuke' && target.isCurseMark && !target.isRinnegan) {
-                target.isRinnegan = true;
-                msg = "SASUKE AWAKENS THE RINNEGAN!";
-                floatText = "RINNEGAN!";
-                color = "#a855f7";
-                transformed = true;
-                newHp = 300;
-            } else if (target.name === 'Naruto' && target.isThreeTails && !target.isSixPaths) {
-                target.isSixPaths = true;
-                msg = "NARUTO ENTERS SIX PATHS SAGE MODE!";
-                floatText = "SIX PATHS!";
-                color = "#facc15";
-                transformed = true;
-                newHp = 300;
-            } else if (target.name === 'Rock Lee' && target.isNinthGate && !target.isNightGuy) {
-                target.isNightGuy = true;
-                msg = "ROCK LEE UNLEASHES THE 8TH GATE: NIGHT GUY!";
-                floatText = "NIGHT GUY!";
-                color = "#ef4444";
-                transformed = true;
-                newHp = 300;
-            } else if (target.name === 'Gaara' && target.isShukaku && !target.isGoldenSand) {
-                target.isGoldenSand = true;
-                msg = "GAARA CONTROLS THE GOLD DUST!";
-                floatText = "GOLD SAND!";
-                color = "#fcd34d";
-                transformed = true;
-                newHp = 300;
-            } else if (target.name === 'Sakura' && target.is100Healings && !target.isKatsuyu) {
-                target.isKatsuyu = true;
-                msg = "SAKURA SUMMONS KATSUYU!";
-                floatText = "KATSUYU!";
-                color = "#86efac";
-                transformed = true;
-                newHp = 300;
-            } else if (target.name === 'Kakashi' && target.isMangekyou && !target.isDMS) {
-                target.isDMS = true;
-                msg = "KAKASHI AWAKENS DOUBLE MANGEKYOU SHARINGAN!";
-                floatText = "DMS!";
-                color = "#3b82f6";
-                transformed = true;
-                newHp = 300;
-            } else if (target.name === 'Hinata' && target.isTwinLion && !target.isTenseigan) {
-                target.isTenseigan = true;
-                msg = "HINATA AWAKENS THE TENSEIGAN!";
-                floatText = "TENSEIGAN!";
-                color = "#22d3ee";
-                transformed = true;
-                newHp = 300;
-            } else if (target.name === 'Itachi' && target.isSusanoo && !target.isEdoTensei) {
-                target.isEdoTensei = true;
-                msg = "ITACHI IS REANIMATED! EDO TENSEI!";
-                floatText = "EDO TENSEI!";
-                color = "#9ca3af";
-                transformed = true;
-                newHp = 300;
-            }
-
-            // --- 2nd Form Upgrades (From Base) ---
-            else if (target.name === 'Sasuke' && !target.isCurseMark && !target.isRinnegan) {
-                target.isCurseMark = true;
-                msg = "SASUKE AWAKENS! CURSE MARK LEVEL 2!";
-                floatText = "CURSE MARK!";
-                color = "#a855f7";
-                transformed = true;
-            } else if (target.name === 'Naruto' && !target.isThreeTails && !target.isSixPaths) {
-                target.isThreeTails = true;
-                msg = "NARUTO TRANSFORMS! THREE-TAILS FORM!";
-                floatText = "THREE-TAILS!";
-                color = "#ef4444";
-                transformed = true;
-            } else if (target.name === 'Rock Lee' && !target.isNinthGate && !target.isNightGuy) {
-                target.isNinthGate = true;
-                msg = "ROCK LEE OPENS THE 9TH GATE! GATE OF PAIN!";
-                floatText = "9TH GATE!";
-                color = "#ef4444";
-                transformed = true;
-            } else if (target.name === 'Gaara' && !target.isShukaku && !target.isGoldenSand) {
-                target.isShukaku = true;
-                msg = "GAARA TRANSFORMS! SHUKAKU POSSESSION!";
-                floatText = "SHUKAKU!";
-                color = "#7c2d12";
-                transformed = true;
-            } else if (target.name === 'Sakura' && !target.is100Healings && !target.isKatsuyu) {
-                target.is100Healings = true;
-                msg = "SAKURA ACTIVATES CREATION REBIRTH!";
-                floatText = "CREATION REBIRTH!";
-                color = "#db2777";
-                transformed = true;
-            } else if (target.name === 'Kakashi' && !target.isMangekyou && !target.isDMS) {
-                target.isMangekyou = true;
-                msg = "KAKASHI AWAKENS MANGEKYOU SHARINGAN!";
-                floatText = "MANGEKYOU!";
-                color = "#dc2626";
-                transformed = true;
-            } else if (target.name === 'Hinata' && !target.isTwinLion && !target.isTenseigan) {
-                target.isTwinLion = true;
-                msg = "HINATA AWAKENS TWIN LION FISTS!";
-                floatText = "TWIN LION!";
-                color = "#a855f7";
-                transformed = true;
-            } else if (target.name === 'Itachi' && !target.isSusanoo && !target.isEdoTensei) {
-                target.isSusanoo = true;
-                msg = "ITACHI SUMMONS SUSANOO!";
-                floatText = "SUSANOO!";
-                color = "#ef4444";
-                transformed = true;
-            } else if (target.name === 'Madara' && !target.isSusanoo) {
-                target.isSusanoo = true;
-                msg = "MADARA SUMMONS PERFECT SUSANOO!";
-                floatText = "PERFECT SUSANOO!";
-                color = "#3b82f6";
-                transformed = true;
-                newHp = 500;
-            }
-
-            if (transformed) {
-                target.hp = newHp;
-                target.maxHp = newHp;
-                
-                let newChakra = 100;
-                if (newHp >= 300) newChakra = 150; // 3rd Form or Madara
-
-                target.chakra = newChakra;
-                target.maxChakra = newChakra;
-                gameState.message = msg;
-                spawnFloatingText(target.x, target.y - 90, floatText, color, true);
-                gameState.effects.push({ type: 'ChakraFocus', x: target.x, y: (target.y - CHAR_SIZE * 2) - CHAR_SIZE, frame: 0 });
-            }
-        }
-
-        function drawBossHealthBar(ctx, boss) {
-            const barWidth = 300;
-            const barHeight = 20;
-            const x = W / 2 - barWidth / 2;
-            const y = 20;
-            
-            // Background
-            ctx.fillStyle = '#374151';
-            ctx.fillRect(x, y, barWidth, barHeight);
-
-            // Foreground (Health)
-            ctx.fillStyle = '#ef4444';
-            ctx.fillRect(x, y, (boss.hp / boss.maxHp) * barWidth, barHeight);
-
-            // Border
-            ctx.strokeStyle = '#fcd34d';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(x, y, barWidth, barHeight);
-
-            // Text
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 14px "Jockey One"';
-            ctx.textAlign = 'center';
-            ctx.fillText(`${boss.name} HP: ${boss.hp}`, W / 2, y + 15);
+            ctx.restore();
         }
 
         // --- Game Loop Adjustments ---
@@ -3608,7 +3180,7 @@
     })();
     </script>
     <div id="version-display" class="fixed bottom-1 right-1 text-[10px] text-gray-500 font-mono opacity-50 pointer-events-none select-none">
-        Version 1.0.1
+        Version 1.0.2
     </div>
 </body>
 </html>
