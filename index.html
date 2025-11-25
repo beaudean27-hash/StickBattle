@@ -405,6 +405,273 @@
             'God Tree Beam': { cost: 50, damage: 120, ninjutsuMsg: "fires a GOD TREE BEAM!" }
         };
 
+        // --- Game Logic ---
+
+        window.resetGame = function() {
+            // Reset Players
+            const p1Name = gameState.playerA.name;
+            const p2Name = gameState.playerB.name;
+            
+            gameState.playerA = { 
+                hp: 100, maxHp: 100, chakra: 50, maxChakra: 50, 
+                x: W * 0.2, y: GROUND_Y, color: '#000000', 
+                name: p1Name, pose: 'idle', 
+                isCurseMark: false, isThreeTails: false, isSixPaths: false, isSageMode: false, isKatsuyu: false, is100Healings: false, isMangekyou: false, isDMS: false, isTwinLion: false, isTenseigan: false, isSusanoo: false, isEdoTensei: false, isGoldenSand: false, isShukaku: false, isNinthGate: false, isNightGuy: false
+            };
+            
+            let p2Hp = 100;
+            let p2Chakra = 50;
+            
+            if (gameState.mode === 'BOSS') {
+                p2Hp = (p2Name === 'Ten Tails') ? 2000 : 1000;
+                p2Chakra = 1000;
+            }
+            
+            gameState.playerB = { 
+                hp: p2Hp, maxHp: p2Hp, chakra: p2Chakra, maxChakra: p2Chakra, 
+                x: W * 0.8, y: GROUND_Y, color: '#000000', 
+                name: p2Name, pose: 'idle',
+                isCurseMark: false, isThreeTails: false, isSixPaths: false, isSageMode: false, isKatsuyu: false, is100Healings: false, isMangekyou: false, isDMS: false, isTwinLion: false, isTenseigan: false, isSusanoo: false, isEdoTensei: false, isGoldenSand: false, isShukaku: false, isNinthGate: false, isNightGuy: false
+            };
+
+            gameState.turn = 'A';
+            gameState.message = "Battle Start!";
+            gameState.effects = [];
+            gameState.floatingTexts = [];
+            gameState.screenShake = 0;
+            
+            updateUI();
+            
+            // Show/Hide Controls
+            document.getElementById('controlsA').classList.remove('hidden');
+            if (gameState.mode === 'PVP') {
+                document.getElementById('controlsB').classList.remove('hidden');
+            } else {
+                document.getElementById('controlsB').classList.add('hidden');
+            }
+            
+            // Boss Mode Team Display
+            if (gameState.mode === 'BOSS') {
+                document.getElementById('battle-team-display').classList.remove('hidden');
+                updateBattleTeamUI();
+            } else {
+                document.getElementById('battle-team-display').classList.add('hidden');
+            }
+        };
+
+        function updateUI() {
+            // Player A
+            document.getElementById('nameA').textContent = gameState.playerA.name;
+            document.getElementById('hpA').textContent = Math.ceil(gameState.playerA.hp);
+            document.getElementById('maxHpA').textContent = gameState.playerA.maxHp;
+            document.getElementById('healthBarA').style.width = `${(gameState.playerA.hp / gameState.playerA.maxHp) * 100}%`;
+            document.getElementById('chakraA').textContent = Math.ceil(gameState.playerA.chakra);
+            document.getElementById('maxChakraA').textContent = gameState.playerA.maxChakra;
+            document.getElementById('chakraBarA').style.width = `${(gameState.playerA.chakra / gameState.playerA.maxChakra) * 100}%`;
+
+            // Player B
+            document.getElementById('nameB').textContent = gameState.playerB.name;
+            document.getElementById('hpB').textContent = Math.ceil(gameState.playerB.hp);
+            document.getElementById('maxHpB').textContent = gameState.playerB.maxHp;
+            document.getElementById('healthBarB').style.width = `${(gameState.playerB.hp / gameState.playerB.maxHp) * 100}%`;
+            document.getElementById('chakraB').textContent = Math.ceil(gameState.playerB.chakra);
+            document.getElementById('maxChakraB').textContent = gameState.playerB.maxChakra;
+            document.getElementById('chakraBarB').style.width = `${(gameState.playerB.chakra / gameState.playerB.maxChakra) * 100}%`;
+            
+            // Message
+            document.getElementById('messageBox').textContent = gameState.message;
+            
+            // Button States (Disable if not enough chakra)
+            updateButtonStates('A', gameState.playerA);
+            if (gameState.mode === 'PVP') updateButtonStates('B', gameState.playerB);
+        }
+        
+        function updateButtonStates(playerSide, player) {
+            const btnNinjutsu = document.getElementById(`btnNinjutsu${playerSide}`);
+            if (player.chakra < 40) {
+                btnNinjutsu.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                btnNinjutsu.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function updateBattleTeamUI() {
+            const container = document.getElementById('battle-team-display');
+            container.innerHTML = '';
+            gameState.teamA.forEach((member, idx) => {
+                const slot = document.createElement('div');
+                slot.className = `w-8 h-8 border rounded flex items-center justify-center text-xs ${idx === gameState.teamIndex ? 'border-yellow-400 bg-gray-600' : 'border-gray-600 bg-gray-800'}`;
+                if (member.hp <= 0) slot.classList.add('opacity-30', 'grayscale');
+                slot.textContent = member.name.substring(0, 1);
+                container.appendChild(slot);
+            });
+        }
+
+        window.handleAction = async function(playerSide, actionType, specificMoveName) {
+            if (gameState.isAnimating) return;
+            if (gameState.turn !== playerSide) return;
+            if (checkWinCondition()) return;
+
+            const attacker = playerSide === 'A' ? gameState.playerA : gameState.playerB;
+            const defender = playerSide === 'A' ? gameState.playerB : gameState.playerA;
+
+            let move = null;
+            
+            if (actionType === 'Taijutsu') {
+                move = MOVES['Taijutsu'];
+                move.name = 'Taijutsu';
+            } else if (actionType === 'Chakra') {
+                move = MOVES['Chakra'];
+                move.name = 'Chakra';
+            } else if (actionType === 'Ninjutsu') {
+                move = getUltimateMove(attacker);
+            } else if (actionType === 'BossMove') {
+                move = MOVES[specificMoveName];
+                move.name = specificMoveName;
+            }
+
+            if (!move) return;
+
+            if (attacker.chakra < move.cost) {
+                gameState.message = "Not enough Chakra!";
+                updateUI();
+                return;
+            }
+
+            gameState.isAnimating = true;
+            attacker.chakra -= move.cost;
+            if (move.chakraGain) attacker.chakra = Math.min(attacker.maxChakra, attacker.chakra + move.chakraGain);
+            
+            gameState.message = `${attacker.name} ${move.msg || move.ninjutsuMsg}`;
+            updateUI();
+
+            if (actionType === 'Taijutsu') {
+                await animateTaijutsu(attacker, defender);
+                applyDamage(defender, move.damage);
+            } else if (actionType === 'Chakra') {
+                gameState.effects.push({ type: 'ChakraFocus', x: attacker.x, y: attacker.y - 20, frame: 0 });
+                await new Promise(r => setTimeout(r, 1000));
+            } else {
+                await animateNinjutsu(attacker, defender, move.name);
+                applyDamage(defender, move.damage);
+                if (move.heal) {
+                    attacker.hp = Math.min(attacker.maxHp, attacker.hp + move.heal);
+                    spawnFloatingText(attacker.x, attacker.y - 40, `+${move.heal}`, '#22c55e');
+                }
+                if (move.selfDamage) {
+                    attacker.hp = Math.max(1, attacker.hp - move.selfDamage);
+                    spawnFloatingText(attacker.x, attacker.y - 40, `-${move.selfDamage}`, '#ef4444');
+                }
+                
+                if (move.name === 'Sharingan') attacker.isCurseMark = true;
+                if (move.name === 'Primary Lotus') attacker.isNinthGate = true;
+                if (move.name === 'Sand Burial') attacker.isShukaku = true;
+                if (move.name === '100 Healings') attacker.is100Healings = true;
+                if (move.name === 'Twin Lion Fists') attacker.isTwinLion = true;
+                if (move.name === 'Kamui') attacker.isMangekyou = true;
+                if (move.name === 'Beast Ball') attacker.isThreeTails = true;
+                if (move.name === 'Tsukuyomi') attacker.isSusanoo = true;
+                if (move.name === 'Meteor Drop') attacker.isSusanoo = true;
+                if (move.name === 'Thunder Strike') attacker.isSageMode = true;
+            }
+
+            gameState.isAnimating = false;
+            
+            if (checkWinCondition()) return;
+
+            gameState.turn = gameState.turn === 'A' ? 'B' : 'A';
+            updateUI();
+
+            if (gameState.turn === 'B' && (gameState.mode === 'CPU' || gameState.mode === 'BOSS')) {
+                setTimeout(cpuAI, 1000);
+            }
+        };
+
+        function applyDamage(target, amount) {
+            target.hp = Math.max(0, target.hp - amount);
+            spawnFloatingText(target.x, target.y - 40, `-${amount}`, '#ef4444', true);
+            gameState.screenShake = 5;
+            updateUI();
+        }
+
+        function checkWinCondition() {
+            // Check for Minato Resurrection (50% chance)
+            const tryResurrect = (player) => {
+                if (player.name === 'Minato' && !player.isSageMode && player.hp <= 0) {
+                    if (Math.random() < 0.5) {
+                        player.hp = 200; // Restore 200 HP
+                        player.isSageMode = true;
+                        player.maxChakra = 100;
+                        player.chakra = 100;
+                        gameState.message = "Minato enters SAGE MODE!";
+                        spawnFloatingText(player.x, player.y - 50, "RESURRECTION!", '#facc15');
+                        updateUI();
+                        return true;
+                    }
+                }
+                return false;
+            };
+
+            if (gameState.playerA.hp <= 0) {
+                if (tryResurrect(gameState.playerA)) return false;
+
+                if (gameState.mode === 'BOSS') {
+                    if (gameState.teamIndex < gameState.teamA.length - 1) {
+                        gameState.teamIndex++;
+                        gameState.playerA = gameState.teamA[gameState.teamIndex];
+                        gameState.message = `${gameState.playerA.name} enters the battle!`;
+                        updateUI();
+                        updateBattleTeamUI();
+                        return false;
+                    }
+                }
+                gameState.message = `${gameState.playerB.name} WINS!`;
+                gameState.playerA.pose = 'defeated';
+                endGame();
+                return true;
+            }
+            if (gameState.playerB.hp <= 0) {
+                if (tryResurrect(gameState.playerB)) return false;
+
+                gameState.message = `${gameState.playerA.name} WINS!`;
+                gameState.playerB.pose = 'defeated';
+                endGame();
+                return true;
+            }
+            return false;
+        }
+
+        function endGame() {
+            setTimeout(() => {
+                document.getElementById('startOverlay').classList.remove('hidden');
+                selectionMode = 1;
+                isBossModeSelection = false;
+                teamSelection = [];
+                updateSelectionUI();
+            }, 3000);
+        }
+
+        function drawBossHealthBar(ctx, boss) {
+            const w = 600;
+            const h = 20;
+            const x = (W - w) / 2;
+            const y = 50;
+            
+            ctx.save();
+            ctx.fillStyle = '#1f2937';
+            ctx.fillRect(x - 2, y - 2, w + 4, h + 4);
+            
+            const pct = Math.max(0, boss.hp / boss.maxHp);
+            ctx.fillStyle = '#ef4444';
+            ctx.fillRect(x, y, w * pct, h);
+            
+            ctx.fillStyle = '#fff';
+            ctx.font = '16px "Jockey One"';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${boss.name}: ${Math.ceil(boss.hp)} / ${boss.maxHp}`, W/2, y + 16);
+            ctx.restore();
+        }
+
         // --- Menu Logic ---
         let selectionMode = 1;
         let isBossModeSelection = false;
